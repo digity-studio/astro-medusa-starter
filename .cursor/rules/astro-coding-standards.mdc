@@ -1,0 +1,16 @@
+---
+alwaysApply: true
+---
+
+#### ASTRO_CODING_STANDARDS
+
+- Use Astro components (.astro) for static content and layout
+- Implement framework components in {{framework_name}} only when interactivity is needed
+- Leverage View Transitions API for smooth page transitions
+- Use content collections with type safety for blog posts, documentation, etc.
+- Implement middleware for request/response modification
+- Use image optimization with the Astro Image integration
+- Leverage Server Endpoints for API routes
+- Implement hybrid rendering with server-side rendering where needed
+- Use Astro.cookies for server-side cookie management
+- Leverage import.meta.env for environment variables
