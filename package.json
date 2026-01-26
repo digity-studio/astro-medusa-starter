@@ -10,5 +10,8 @@
   },
   "dependencies": {
     "astro": "^6.0.0-beta.3"
+  },
+  "devDependencies": {
+    "@medusajs/types": "^2.13.1"
   }
 }
