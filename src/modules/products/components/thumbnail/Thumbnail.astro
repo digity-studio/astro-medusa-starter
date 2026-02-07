@@ -1,0 +1,32 @@
+---
+import { Image } from "astro:assets";
+import PlaceholderImage from "./PlaceholderImage.astro";
+
+interface Props {
+  imageUrl?: string;
+  title: string;
+}
+
+const { imageUrl, title } = Astro.props;
+---
+
+<div
+  class="hover:shadow-sm ease-in-out duration-200 h-full flex items-center justify-center"
+>
+  <div class="overflow-hidden rounded-xl">
+    {
+      imageUrl ? (
+        <Image
+          src={imageUrl}
+          width={1049}
+          height={1312}
+          alt={title}
+          layout="constrained"
+          quality={50}
+        />
+      ) : (
+        <PlaceholderImage size={24} />
+      )
+    }
+  </div>
+</div>

@@ -1,0 +1,51 @@
+---
+import Layout from "@layouts/Layout.astro";
+import { getRegionParams } from "@lib/utils/region-params";
+import ProductPreview from "@modules/products/components/product-preview/ProductPreview.astro";
+import { getLiveCollection } from "astro:content";
+
+export const getStaticPaths = getRegionParams;
+
+const {
+  entries: products,
+  error,
+  cacheHint,
+} = await getLiveCollection("products", Astro.params.countryCode);
+
+if (error) {
+  console.error(error);
+}
+
+if (cacheHint?.tags) {
+  Astro.response.headers.set("Cache-Tag", cacheHint.tags.join(","));
+}
+
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set(
+    "Last-Modified",
+    cacheHint.lastModified.toISOString()
+  );
+}
+---
+
+<Layout>
+  <h1 class="mb-8 text-4xl font-bold">All Products</h1>
+  {error && <p class="text-red-700">{error.message}</p>}
+  <ul
+    class="grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 w-full gap-x-6 gap-y-8"
+  >
+    {
+      products?.map(({ data }) => (
+        <li>
+          <ProductPreview
+            id={data.id}
+            variants={data.variants ?? []}
+            thumbnailUrl={data.thumbnail ?? undefined}
+            imageUrl={data.images?.[0]?.url}
+            title={data.title}
+          />
+        </li>
+      ))
+    }
+  </ul>
+</Layout>

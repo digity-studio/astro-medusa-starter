@@ -1,0 +1,16 @@
+---
+interface Props {
+  priceType: string;
+  originalPrice: string;
+  calculatedPrice: string;
+}
+
+const { priceType, originalPrice, calculatedPrice } = Astro.props;
+---
+
+<>
+  {priceType === "sale" && <p data-testid="original-price">{originalPrice}</p>}
+  <p data-testid="price">
+    {calculatedPrice}
+  </p>
+</>

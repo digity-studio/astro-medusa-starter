@@ -1,12 +1,42 @@
 import { HttpTypes } from "@medusajs/types";
-import { DEFAULT_REGION, MEDUSA_BACKEND_URL } from "astro:env/client";
-import { MEDUSA_PUBLISHABLE_KEY } from "astro:env/server";
 import { defineMiddleware } from "astro:middleware";
+import { sdk } from "./lib/sdk";
 
-const regionMapCache = {
+const MEDUSA_BACKEND_URL = import.meta.env.MEDUSA_BACKEND_URL;
+const DEFAULT_REGION = import.meta.env.DEFAULT_REGION;
+
+export const regionMapCache = {
   regionMap: new Map<string, HttpTypes.StoreRegion>(),
   regionMapUpdated: Date.now(),
 };
+
+function isStaticOrInternalPath(pathname: string) {
+  // Astro/Vite internal and image optimization routes
+  if (
+    pathname === "/_astro" ||
+    pathname.startsWith("/_astro/") ||
+    pathname === "/_image" ||
+    pathname.startsWith("/_image") ||
+    pathname.startsWith("/@") || // e.g. /@vite, /@id, /@fs (dev)
+    pathname.startsWith("/__") // e.g. /__vite_ping (dev)
+  ) {
+    return true;
+  }
+
+  // Common site root static files
+  if (
+    pathname === "/favicon.ico" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/manifest.webmanifest"
+  ) {
+    return true;
+  }
+
+  // Any file with an extension (images, css, js, fonts, etc.)
+  const lastSegment = pathname.split("/").pop() ?? "";
+  return lastSegment.includes(".") && lastSegment !== ".well-known";
+}
 
 /**
  * Fetches regions from Medusa and caches them in a map.
@@ -17,7 +47,7 @@ async function getRegionMap() {
 
   if (!MEDUSA_BACKEND_URL) {
     throw new Error(
-      "src/middleware.ts: Error fetching regions. Did you set up regions in your Medusa Admin and define a MEDUSA_BACKEND_URL environment variable?"
+      "src/middleware.ts: Error fetching regions. Did you set up regions in your Medusa Admin and define a MEDUSA_BACKEND_URL environment variable?",
     );
   }
 
@@ -26,33 +56,26 @@ async function getRegionMap() {
     regionMapUpdated > Date.now() - 3600 * 1000; // 1 hour
 
   if (!isCacheValid) {
-    const { regions } = await fetch(`${MEDUSA_BACKEND_URL}/store/regions`, {
-      headers: {
-        "x-publishable-api-key": MEDUSA_PUBLISHABLE_KEY,
-      },
-    }).then(async (response) => {
-      const json = await response.json();
+    try {
+      const { regions } = await sdk.store.region.list();
 
-      if (!response.ok) {
-        throw new Error(json.message);
+      if (!regions?.length) {
+        throw new Error(
+          "No regions found. Please set up regions in your Medusa Admin.",
+        );
       }
 
-      return json;
-    });
-
-    if (!regions?.length) {
-      throw new Error(
-        "No regions found. Please set up regions in your Medusa Admin."
-      );
-    }
-
-    regions.forEach((region: HttpTypes.StoreRegion) => {
-      region.countries?.forEach((country) => {
-        regionMapCache.regionMap.set(country.iso_2 ?? "", region);
+      regions.forEach((region: HttpTypes.StoreRegion) => {
+        region.countries?.forEach((country) => {
+          regionMapCache.regionMap.set(country.iso_2 ?? "", region);
+        });
       });
-    });
 
-    regionMapCache.regionMapUpdated = Date.now();
+      regionMapCache.regionMapUpdated = Date.now();
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to fetch regions from Medusa.");
+    }
   }
 
   return regionMapCache.regionMap;
@@ -82,6 +105,17 @@ async function getCountryCode(pathname: string) {
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  // Never redirect non-page requests (assets, dev internals, etc.)
+  if (isStaticOrInternalPath(context.url.pathname)) {
+    return next();
+  }
+
+  // Only redirect navigations; avoid changing semantics for form submits, etc.
+  const method = context.request.method.toUpperCase();
+  if (method !== "GET" && method !== "HEAD") {
+    return next();
+  }
+
   let redirectUrl = context.url.href;
   const origin = context.url.origin;
   const pathname = context.url.pathname;

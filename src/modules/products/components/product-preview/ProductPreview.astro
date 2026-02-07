@@ -1,0 +1,42 @@
+---
+import { getProductPrice } from "../../../../lib/utils/get-product-price";
+import type { ProductVariant } from "../../../../types/global";
+import Thumbnail from "../thumbnail/Thumbnail.astro";
+import Price from "./Price.astro";
+
+interface Props {
+  id: string;
+  variants: ProductVariant[];
+  thumbnailUrl?: string;
+  imageUrl?: string;
+  title: string;
+}
+
+const { id, variants, thumbnailUrl, imageUrl, title } = Astro.props;
+const countryCode = Astro.params.countryCode;
+
+const { cheapestPrice } = getProductPrice({
+  productId: id,
+  productVariants: variants,
+});
+---
+
+<a
+  href={`/${countryCode}/store/${id}`}
+  class="flex h-full flex-col gap-4 justify-between group"
+>
+  <Thumbnail imageUrl={imageUrl || thumbnailUrl} title={title} />
+
+  <div class="flex text-sm justify-between">
+    <p>{title}</p>
+    {
+      cheapestPrice && (
+        <Price
+          priceType={cheapestPrice.price_type ?? ""}
+          originalPrice={cheapestPrice.original_price}
+          calculatedPrice={cheapestPrice.calculated_price}
+        />
+      )
+    }
+  </div>
+</a>

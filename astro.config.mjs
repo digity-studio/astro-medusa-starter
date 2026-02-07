@@ -1,23 +1,19 @@
 // @ts-check
-import { defineConfig, envField } from "astro/config";
+import { defineConfig } from "astro/config";
 
 import cloudflare from "@astrojs/cloudflare";
+import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
-  env: {
-    schema: {
-      MEDUSA_BACKEND_URL: envField.string({
-        context: "server",
-        access: "secret",
-      }),
-      MEDUSA_PUBLISHABLE_KEY: envField.string({
-        context: "server",
-        access: "secret",
-      }),
-      DEFAULT_REGION: envField.string({ context: "client", access: "public" }),
-    },
-  },
-
   adapter: cloudflare(),
+  vite: {
+    ssr: {
+      noExternal: ["@medusajs/js-sdk"],
+    },
+    plugins: [tailwindcss()],
+  },
+  image: {
+    domains: ["medusa-public-images.s3.eu-west-1.amazonaws.com"],
+  },
 });
