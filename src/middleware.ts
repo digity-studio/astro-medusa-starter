@@ -5,7 +5,7 @@ import { sdk } from "./lib/sdk";
 const MEDUSA_BACKEND_URL = import.meta.env.MEDUSA_BACKEND_URL;
 const DEFAULT_REGION = import.meta.env.DEFAULT_REGION;
 
-export const regionMapCache = {
+const regionMapCache = {
   regionMap: new Map<string, HttpTypes.StoreRegion>(),
   regionMapUpdated: Date.now(),
 };

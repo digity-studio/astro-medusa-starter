@@ -1,0 +1,54 @@
+---
+import { getImage } from "astro:assets";
+import { ImageCarousel, type OptimizedCarouselImage } from "./ImageCarousel";
+
+interface Props {
+  images: { url: string }[];
+  alt: string;
+}
+
+const { images, alt } = Astro.props;
+
+const imageUrls = images.map((image) => image.url);
+
+const optimizedImages: OptimizedCarouselImage[] = await Promise.all(
+  imageUrls.map(async (imageUrl) => {
+    const [main, thumb] = await Promise.all([
+      getImage({
+        src: imageUrl,
+        width: 1049,
+        height: 1312,
+        quality: 50,
+        widths: [524, 1049],
+        sizes: "(max-width: 1049px) 524px, 1049px",
+      }),
+      getImage({
+        src: imageUrl,
+        width: 144,
+        height: 144,
+        quality: 50,
+      }),
+    ]);
+    return {
+      originalUrl: imageUrl,
+      main: {
+        src: main.src,
+        srcSet:
+          main.srcSet.values.length > 0 ? main.srcSet.attribute : undefined,
+        width: main.attributes.width as number,
+        height: main.attributes.height as number,
+        sizes: "(max-width: 1049px) 524px, 1049px",
+      },
+      thumb: {
+        src: thumb.src,
+        srcSet:
+          thumb.srcSet.values.length > 0 ? thumb.srcSet.attribute : undefined,
+        width: thumb.attributes.width as number,
+        height: thumb.attributes.height as number,
+      },
+    };
+  })
+);
+---
+
+<ImageCarousel images={optimizedImages} alt={alt} client:visible />

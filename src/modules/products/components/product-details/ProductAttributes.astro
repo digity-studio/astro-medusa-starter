@@ -1,0 +1,50 @@
+---
+interface Props {
+  material?: string | null;
+  origin_country?: string | null;
+  type?: { value: string } | null;
+  weight?: string | null;
+  length?: string | null;
+  width?: string | null;
+  height?: string | null;
+}
+
+const { material, origin_country, type, weight, length, width, height } =
+  Astro.props;
+---
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <div class="grid grid-cols-2 gap-x-8">
+    <div class="flex flex-col gap-y-4">
+      <div>
+        <span class="font-semibold">Material</span>
+        <p>{material || "-"}</p>
+      </div>
+      <div>
+        <span class="font-semibold">Country of origin</span>
+        <p>{origin_country || "-"}</p>
+      </div>
+      <div>
+        <span class="font-semibold">Type</span>
+        <p>{type?.value || "-"}</p>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-y-4">
+      <div>
+        <span class="font-semibold">Weight</span>
+        <p>{weight ? `${weight}g` : "-"}</p>
+      </div>
+      <div>
+        <span class="font-semibold">Dimensions</span>
+        <p>
+          {
+            length && width && height
+              ? `${length}L x ${width}W x ${height}H`
+              : "-"
+          }
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

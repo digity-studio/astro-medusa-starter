@@ -16,7 +16,6 @@ const { id, variants, thumbnailUrl, imageUrl, title } = Astro.props;
 const countryCode = Astro.params.countryCode;
 
 const { cheapestPrice } = getProductPrice({
-  productId: id,
   productVariants: variants,
 });
 ---

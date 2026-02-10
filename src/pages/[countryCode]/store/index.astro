@@ -1,16 +1,25 @@
 ---
 import Layout from "@layouts/Layout.astro";
-import { getRegionParams } from "@lib/utils/region-params";
+import { getRegion } from "@lib/data/regions";
+import { getRegionParams } from "@lib/params/region-params";
 import ProductPreview from "@modules/products/components/product-preview/ProductPreview.astro";
 import { getLiveCollection } from "astro:content";
 
 export const getStaticPaths = getRegionParams;
 
+const { countryCode } = Astro.params;
+
+const region = await getRegion(countryCode);
+
+if (!region) {
+  return Astro.redirect("/not-found");
+}
+
 const {
   entries: products,
   error,
   cacheHint,
-} = await getLiveCollection("products", Astro.params.countryCode);
+} = await getLiveCollection("products", { regionId: region.id });
 
 if (error) {
   console.error(error);

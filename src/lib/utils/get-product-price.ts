@@ -34,18 +34,12 @@ export const getPricesForVariant = (variant: ProductVariant) => {
 };
 
 export const getProductPrice = ({
-  productId,
   productVariants,
   variantId,
 }: {
-  productId: string;
   productVariants: ProductVariant[] | null;
   variantId?: string;
 }) => {
-  if (!productId) {
-    throw new Error("No product provided");
-  }
-
   const cheapestPrice = () => {
     if (!productVariants?.length) {
       return null;
@@ -68,7 +62,7 @@ export const getProductPrice = ({
   };
 
   const variantPrice = () => {
-    if (!productId || !variantId) {
+    if (!variantId) {
       return null;
     }
 
