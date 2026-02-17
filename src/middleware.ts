@@ -2,7 +2,7 @@ import { HttpTypes } from "@medusajs/types";
 import { defineMiddleware } from "astro:middleware";
 import { sdk } from "./lib/sdk";
 
-const MEDUSA_BACKEND_URL = import.meta.env.MEDUSA_BACKEND_URL;
+const MEDUSA_BACKEND_URL = import.meta.env.PUBLIC_MEDUSA_BACKEND_URL;
 const DEFAULT_REGION = import.meta.env.DEFAULT_REGION;
 
 const regionMapCache = {
@@ -47,7 +47,7 @@ async function getRegionMap() {
 
   if (!MEDUSA_BACKEND_URL) {
     throw new Error(
-      "src/middleware.ts: Error fetching regions. Did you set up regions in your Medusa Admin and define a MEDUSA_BACKEND_URL environment variable?",
+      "src/middleware.ts: Error fetching regions. Did you set up regions in your Medusa Admin and define a PUBLIC_MEDUSA_BACKEND_URL environment variable?",
     );
   }
 

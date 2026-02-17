@@ -8,6 +8,10 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   adapter: cloudflare(),
   integrations: [react()],
+  server: {
+    port: 8000,
+    host: true,
+  },
   vite: {
     ssr: {
       noExternal: ["@medusajs/js-sdk"],

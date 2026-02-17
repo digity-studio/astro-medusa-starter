@@ -1,6 +1,18 @@
 ---
+import { getRegion } from "@lib/data/regions";
+import { CartSidebar } from "@modules/layout/components/CartSidebar";
+import { Nav } from "@modules/layout/components/Nav";
 import "@styles/global.css";
 import { ClientRouter } from "astro:transitions";
+
+const { countryCode } = Astro.params;
+
+if (!countryCode) {
+  return Astro.redirect("/not-found");
+}
+
+const region = await getRegion(countryCode);
+const regionId = region?.id || null;
 ---
 
 <!doctype html>
@@ -24,12 +36,13 @@ import { ClientRouter } from "astro:transitions";
     <title>Astro + Medusa Starter</title>
   </head>
   <body>
+    <Nav client:load countryCode={countryCode} regionId={regionId} />
     <slot />
+    <CartSidebar client:load countryCode={countryCode} />
   </body>
 </html>
 
 <style>
-  html,
   body {
     margin: 0 auto;
     padding: 2rem;

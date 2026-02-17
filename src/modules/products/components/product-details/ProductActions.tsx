@@ -1,3 +1,4 @@
+import { addToCart } from "@lib/stores/cart";
 import { isProductInStock } from "@lib/utils/is-product-in-stock";
 import clsx from "clsx";
 import { useMemo, useState } from "react";
@@ -12,6 +13,7 @@ interface Props {
     }[];
   }[];
   variants: {
+    id: string;
     options:
       | {
           id: string;
@@ -28,6 +30,7 @@ export const ProductActions = ({ options, variants }: Props) => {
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
   >({});
+  const [isAdding, setIsAdding] = useState(false);
 
   const selectedVariant = useMemo(() => {
     if (
@@ -44,14 +47,27 @@ export const ProductActions = ({ options, variants }: Props) => {
           optionValue.id === selectedOptions[optionValue.option_id!],
       ),
     );
-  }, [selectedOptions]);
+  }, [selectedOptions, variants, options]);
 
   const handleOptionSelect = (optionId: string, valueId: string) => {
     setSelectedOptions((prev) => ({ ...prev, [optionId]: valueId }));
   };
 
+  const handleAddToCart = async () => {
+    if (!selectedVariant || isAdding) return;
+
+    setIsAdding(true);
+    try {
+      await addToCart(selectedVariant.id, 1);
+    } catch (error) {
+      console.error("Failed to add item to cart:", error);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   const isAddToCardButtonDisabled =
-    !selectedVariant || !isProductInStock(selectedVariant);
+    !selectedVariant || !isProductInStock(selectedVariant) || isAdding;
 
   if (options.length === 0) {
     return null;
@@ -89,11 +105,9 @@ export const ProductActions = ({ options, variants }: Props) => {
           },
         )}
         disabled={isAddToCardButtonDisabled}
-        onClick={() => {
-          console.log("Add to Cart");
-        }}
+        onClick={handleAddToCart}
       >
-        Add to Cart
+        {isAdding ? "Adding..." : "Add to Cart"}
       </button>
     </div>
   );
