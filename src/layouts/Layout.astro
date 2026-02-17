@@ -9,6 +9,15 @@ import { ClientRouter } from "astro:transitions";
     <ClientRouter />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    <link
+      rel="dns-prefetch"
+      href="//medusa-public-images.s3.eu-west-1.amazonaws.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://medusa-public-images.s3.eu-west-1.amazonaws.com"
+      crossorigin
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />

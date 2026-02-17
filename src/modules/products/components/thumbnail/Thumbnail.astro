@@ -18,11 +18,13 @@ const { imageUrl, title } = Astro.props;
       imageUrl ? (
         <Image
           src={imageUrl}
-          width={1049}
-          height={1312}
+          width={512}
+          height={640}
           alt={title}
           layout="constrained"
-          quality={50}
+          widths={[256, 384, 512]}
+          sizes="(max-width: 768px) 50vw, (max-width: 1536px) 33vw, 25vw"
+          quality={45}
         />
       ) : (
         <PlaceholderImage size={24} />

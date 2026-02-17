@@ -24,7 +24,7 @@ const { cheapestPrice } = getProductPrice({
   href={`/${countryCode}/store/${id}`}
   class="flex h-full flex-col gap-4 justify-between group"
 >
-  <Thumbnail imageUrl={imageUrl || thumbnailUrl} title={title} />
+  <Thumbnail imageUrl={thumbnailUrl || imageUrl} title={title} />
 
   <div class="flex text-sm justify-between">
     <p>{title}</p>
