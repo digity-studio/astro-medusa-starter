@@ -1,12 +1,10 @@
 import {
   $cart,
-  initCart,
   removeFromCart,
   updateLineItemQuantity,
 } from "@lib/stores/cart";
 import { convertToLocale } from "@lib/utils/money";
 import { useStore } from "@nanostores/react";
-import { useEffect } from "react";
 
 interface CartPageProps {
   countryCode: string;
@@ -14,11 +12,6 @@ interface CartPageProps {
 
 export const CartPage = ({ countryCode }: CartPageProps) => {
   const cart = useStore($cart);
-
-  // Initialize cart on mount
-  useEffect(() => {
-    initCart();
-  }, []);
 
   const handleRemoveItem = async (lineItemId: string) => {
     try {
@@ -246,12 +239,12 @@ export const CartPage = ({ countryCode }: CartPageProps) => {
                   </div>
                 </div>
 
-                <button
-                  className="w-full bg-black text-white py-4 px-6 rounded-md hover:bg-gray-800 transition-colors mt-6"
-                  disabled
+                <a
+                  href={`/${countryCode}/checkout`}
+                  className="w-full block text-center bg-black text-white py-4 px-6 rounded-md hover:bg-gray-800 transition-colors mt-6"
                 >
                   Go to checkout
-                </button>
+                </a>
               </div>
             </div>
           </div>

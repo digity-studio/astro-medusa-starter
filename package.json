@@ -11,6 +11,7 @@
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.12",
     "@astrojs/react": "^4.4.2",
+    "@hookform/resolvers": "^5.2.2",
     "@medusajs/js-sdk": "^2.13.1",
     "@nanostores/react": "^1.0.0",
     "@tailwindcss/vite": "^4.1.18",
@@ -18,7 +19,9 @@
     "clsx": "^2.1.1",
     "nanostores": "^1.1.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "react-hook-form": "^7.71.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@medusajs/types": "^2.13.1",

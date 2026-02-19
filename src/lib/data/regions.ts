@@ -5,7 +5,7 @@ const DEFAULT_REGION = import.meta.env.DEFAULT_REGION;
 
 const regionMap = new Map<string, HttpTypes.StoreRegion>();
 
-const listRegions = async () => {
+export const listRegions = async () => {
   try {
     const { regions } = await sdk.store.region.list();
     return regions;

@@ -71,7 +71,7 @@ export async function initCart(): Promise<void> {
       try {
         const { cart } = await sdk.store.cart.retrieve(existingCartId, {
           fields:
-            "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail",
+            "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
         });
         $cart.set(cart);
         return;
@@ -92,7 +92,7 @@ export async function initCart(): Promise<void> {
       },
       {
         fields:
-          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail",
+          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
       },
     );
 
@@ -130,7 +130,7 @@ export async function addToCart(
       },
       {
         fields:
-          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail",
+          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
       },
     );
 
@@ -155,13 +155,13 @@ export async function removeFromCart(lineItemId: string): Promise<void> {
 
     await sdk.store.cart.deleteLineItem(cart.id, lineItemId, {
       fields:
-        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail",
+        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
     });
 
     // Retrieve updated cart (deleteLineItem returns parent but it might be undefined)
     const { cart: updatedCart } = await sdk.store.cart.retrieve(cart.id, {
       fields:
-        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail",
+        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
     });
 
     $cart.set(updatedCart);
@@ -198,7 +198,7 @@ export async function updateLineItemQuantity(
       },
       {
         fields:
-          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail",
+          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
       },
     );
 
@@ -228,4 +228,37 @@ export function closeCartSidebar(): void {
  */
 export function openCartSidebar(): void {
   $isCartSidebarOpen.set(true);
+}
+
+/**
+ * Update cart shipping address and email
+ */
+type CartAddress = {
+  first_name: string;
+  last_name: string;
+  address_1: string;
+  company?: string;
+  postal_code: string;
+  city: string;
+  country_code: string;
+  province?: string;
+  phone?: string;
+};
+
+export async function updateCartAddress(data: {
+  email: string;
+  shipping_address: CartAddress;
+  billing_address?: CartAddress;
+}): Promise<void> {
+  const cart = $cart.get();
+  if (!cart) {
+    throw new Error("Cart not initialized");
+  }
+
+  const { cart: updatedCart } = await sdk.store.cart.update(cart.id, data, {
+    fields:
+      "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
+  });
+
+  $cart.set(updatedCart);
 }

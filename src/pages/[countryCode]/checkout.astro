@@ -1,0 +1,47 @@
+---
+import Layout from "@layouts/Layout.astro";
+import { listRegions } from "@lib/data/regions";
+import { getRegionParams } from "@lib/params/region-params";
+import type { RegionCountry } from "@modules/checkout/components/AddressFields";
+import { CheckoutPage } from "@modules/checkout/components/CheckoutPage";
+
+export const getStaticPaths = getRegionParams;
+
+const { countryCode } = Astro.params;
+
+if (!countryCode) {
+  return Astro.redirect("/not-found");
+}
+
+let countries: RegionCountry[] = [];
+
+try {
+  const regions = await listRegions();
+  const region = regions.find((r) =>
+    r.countries?.some(
+      (c) => c.iso_2?.toLowerCase() === countryCode.toLowerCase()
+    )
+  );
+
+  if (region?.countries) {
+    countries = region.countries
+      .filter((c): c is typeof c & { iso_2: string } => !!c.iso_2)
+      .sort((a, b) =>
+        (a.display_name ?? a.name ?? "").localeCompare(
+          b.display_name ?? b.name ?? ""
+        )
+      )
+      .map((c) => ({
+        iso_2: c.iso_2,
+        display_name: c.display_name,
+        name: c.name,
+      }));
+  }
+} catch (err) {
+  console.error("Failed to fetch region countries for checkout:", err);
+}
+---
+
+<Layout>
+  <CheckoutPage client:load countryCode={countryCode} countries={countries} />
+</Layout>
