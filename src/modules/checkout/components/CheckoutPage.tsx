@@ -1,6 +1,8 @@
 import { $cart } from "@lib/stores/cart";
 import { useStore } from "@nanostores/react";
+import { useEffect, useState } from "react";
 import { type RegionCountry } from "./AddressFields";
+import { DeliveryStep } from "./DeliveryStep";
 import { OrderSummary } from "./OrderSummary";
 import { ShippingAddressStep } from "./ShippingAddressStep";
 
@@ -9,10 +11,56 @@ interface CheckoutPageProps {
   countries: RegionCountry[];
 }
 
-const INACTIVE_STEPS = ["Delivery", "Payment", "Review"];
+type CheckoutStep = "address" | "delivery" | "payment" | "review";
+
+const VALID_STEPS: CheckoutStep[] = ["address", "delivery", "payment", "review"];
+
+const FUTURE_STEPS: { key: CheckoutStep; label: string }[] = [
+  { key: "payment", label: "Payment" },
+  { key: "review", label: "Review" },
+];
+
+function readStepFromUrl(): CheckoutStep {
+  const params = new URLSearchParams(window.location.search);
+  const s = params.get("step");
+  return VALID_STEPS.includes(s as CheckoutStep) ? (s as CheckoutStep) : "address";
+}
+
+function validateStep(
+  step: CheckoutStep,
+  cart: NonNullable<ReturnType<typeof $cart.get>>,
+): CheckoutStep {
+  const hasAddress = Boolean(cart.shipping_address?.first_name);
+  const hasShippingMethod = Boolean(cart.shipping_methods?.length);
+
+  if (step === "delivery" && !hasAddress) return "address";
+  if ((step === "payment" || step === "review") && !hasAddress) return "address";
+  if ((step === "payment" || step === "review") && !hasShippingMethod) return "delivery";
+  return step;
+}
 
 export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
   const cart = useStore($cart);
+  // Used only as a re-render trigger when the URL changes; step is derived below.
+  const [, setSearch] = useState(() =>
+    typeof window !== "undefined" ? window.location.search : "",
+  );
+
+  useEffect(() => {
+    const onPopState = () => setSearch(window.location.search);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  const goToStep = (next: CheckoutStep) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("step", next);
+    history.pushState(null, "", url.toString());
+    setSearch(url.search);
+  };
+
+  // Derive current step from URL, validated against cart state.
+  const step = cart ? validateStep(readStepFromUrl(), cart) : "address";
 
   if (!cart || !cart.items?.length) {
     return (
@@ -34,11 +82,30 @@ export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Left column: checkout steps */}
         <div className="lg:col-span-2 space-y-0">
-          <ShippingAddressStep cart={cart} countries={countries} />
+          <ShippingAddressStep
+            cart={cart}
+            countries={countries}
+            mode={step === "address" ? "edit" : "read"}
+            onContinue={() => goToStep("delivery")}
+            onEdit={() => goToStep("address")}
+          />
 
-          {INACTIVE_STEPS.map((step) => (
-            <div key={step} className="border-t border-gray-200 pt-6 mt-6">
-              <h2 className="text-2xl font-bold text-gray-400">{step}</h2>
+          <DeliveryStep
+            cart={cart}
+            mode={
+              step === "delivery"
+                ? "edit"
+                : step === "address"
+                  ? "inactive"
+                  : "read"
+            }
+            onContinue={() => goToStep("payment")}
+            onEdit={() => goToStep("delivery")}
+          />
+
+          {FUTURE_STEPS.map(({ key, label }) => (
+            <div key={key} className="border-t border-gray-200 pt-6 mt-6">
+              <h2 className="text-2xl font-bold text-gray-400">{label}</h2>
             </div>
           ))}
         </div>

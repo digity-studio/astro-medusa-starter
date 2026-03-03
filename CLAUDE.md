@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Required Skills
+
+**ALWAYS read these skill files before writing any code in this project:**
+
+- [`.agents/skills/building-storefronts/SKILL.md`](.agents/skills/building-storefronts/SKILL.md) — SDK usage patterns, React Query, Medusa API integration
+- [`.agents/skills/storefront-best-practices/SKILL.md`](.agents/skills/storefront-best-practices/SKILL.md) — Ecommerce UI/UX patterns, component design, backend integration
+
 ## Commands
 
 ```bash

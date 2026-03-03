@@ -71,7 +71,7 @@ export async function initCart(): Promise<void> {
       try {
         const { cart } = await sdk.store.cart.retrieve(existingCartId, {
           fields:
-            "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
+            "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
         });
         $cart.set(cart);
         return;
@@ -92,7 +92,7 @@ export async function initCart(): Promise<void> {
       },
       {
         fields:
-          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
+          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
       },
     );
 
@@ -130,7 +130,7 @@ export async function addToCart(
       },
       {
         fields:
-          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
+          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
       },
     );
 
@@ -155,13 +155,13 @@ export async function removeFromCart(lineItemId: string): Promise<void> {
 
     await sdk.store.cart.deleteLineItem(cart.id, lineItemId, {
       fields:
-        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
+        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
     });
 
     // Retrieve updated cart (deleteLineItem returns parent but it might be undefined)
     const { cart: updatedCart } = await sdk.store.cart.retrieve(cart.id, {
       fields:
-        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
+        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
     });
 
     $cart.set(updatedCart);
@@ -198,7 +198,7 @@ export async function updateLineItemQuantity(
       },
       {
         fields:
-          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
+          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
       },
     );
 
@@ -231,6 +231,27 @@ export function openCartSidebar(): void {
 }
 
 /**
+ * Add shipping method to cart
+ */
+export async function addShippingMethod(shippingOptionId: string): Promise<void> {
+  const cart = $cart.get();
+  if (!cart) {
+    throw new Error("Cart not initialized");
+  }
+
+  const { cart: updatedCart } = await sdk.store.cart.addShippingMethod(
+    cart.id,
+    { option_id: shippingOptionId },
+    {
+      fields:
+        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
+    },
+  );
+
+  $cart.set(updatedCart);
+}
+
+/**
  * Update cart shipping address and email
  */
 type CartAddress = {
@@ -257,7 +278,7 @@ export async function updateCartAddress(data: {
 
   const { cart: updatedCart } = await sdk.store.cart.update(cart.id, data, {
     fields:
-      "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address",
+      "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
   });
 
   $cart.set(updatedCart);

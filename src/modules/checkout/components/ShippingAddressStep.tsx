@@ -109,13 +109,121 @@ function areSameAddress(
 interface ShippingAddressStepProps {
   cart: StoreCart | null;
   countries: RegionCountry[];
+  mode: "edit" | "read";
   onContinue?: () => void;
+  onEdit?: () => void;
 }
+
+const CheckCircle = () => (
+  <span className="inline-flex items-center justify-center w-5 h-5 bg-black rounded-full shrink-0">
+    <svg
+      className="w-3 h-3 text-white"
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M2 6l3 3 5-5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </span>
+);
+
+const ReadOnlyView = ({
+  cart,
+  onEdit,
+}: {
+  cart: StoreCart;
+  onEdit?: () => void;
+}) => {
+  const shipping = cart.shipping_address;
+  const billing = cart.billing_address;
+  const isBillingSame = areSameAddress(shipping, billing);
+
+  const shippingLines = [
+    shipping?.first_name && shipping?.last_name
+      ? `${shipping.first_name} ${shipping.last_name}`
+      : null,
+    shipping?.address_1 ?? null,
+    shipping?.postal_code && shipping?.city
+      ? `${shipping.postal_code}, ${shipping.city}`
+      : null,
+    shipping?.country_code?.toUpperCase() ?? null,
+  ].filter(Boolean) as string[];
+
+  const billingLines = isBillingSame
+    ? null
+    : [
+        billing?.first_name && billing?.last_name
+          ? `${billing.first_name} ${billing.last_name}`
+          : null,
+        billing?.address_1 ?? null,
+        billing?.postal_code && billing?.city
+          ? `${billing.postal_code}, ${billing.city}`
+          : null,
+        billing?.country_code?.toUpperCase() ?? null,
+      ].filter(Boolean) as string[];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          Shipping Address
+          <CheckCircle />
+        </h2>
+        <button
+          type="button"
+          onClick={onEdit}
+          className="text-blue-600 hover:underline text-sm"
+        >
+          Edit
+        </button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-8 text-sm">
+        <div>
+          <p className="font-medium mb-2">Shipping Address</p>
+          {shippingLines.map((line, i) => (
+            <p key={i} className="text-gray-700">
+              {line}
+            </p>
+          ))}
+        </div>
+
+        <div>
+          <p className="font-medium mb-2">Contact</p>
+          {cart.email && <p className="text-gray-700">{cart.email}</p>}
+        </div>
+
+        <div>
+          <p className="font-medium mb-2">Billing Address</p>
+          {isBillingSame ? (
+            <p className="text-gray-700">
+              Billing and delivery address are the same.
+            </p>
+          ) : (
+            billingLines?.map((line, i) => (
+              <p key={i} className="text-gray-700">
+                {line}
+              </p>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const ShippingAddressStep = ({
   cart,
   countries,
+  mode,
   onContinue,
+  onEdit,
 }: ShippingAddressStepProps) => {
   const [submitError, setSubmitError] = useState("");
   const cartInitialized = useRef(false);
@@ -198,6 +306,10 @@ export const ShippingAddressStep = ({
       setSubmitError("Failed to save address. Please try again.");
     }
   };
+
+  if (mode === "read" && cart) {
+    return <ReadOnlyView cart={cart} onEdit={onEdit} />;
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
