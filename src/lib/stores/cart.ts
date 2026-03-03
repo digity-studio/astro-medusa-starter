@@ -2,6 +2,9 @@ import { sdk } from "@lib/sdk";
 import type { StoreCart } from "@medusajs/types";
 import { atom, computed } from "nanostores";
 
+const CART_FIELDS =
+  "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods,*payment_collection,*payment_collection.payment_sessions";
+
 // Cart state atom
 export const $cart = atom<StoreCart | null>(null);
 
@@ -71,7 +74,7 @@ export async function initCart(): Promise<void> {
       try {
         const { cart } = await sdk.store.cart.retrieve(existingCartId, {
           fields:
-            "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
+            CART_FIELDS,
         });
         $cart.set(cart);
         return;
@@ -92,7 +95,7 @@ export async function initCart(): Promise<void> {
       },
       {
         fields:
-          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
+          CART_FIELDS,
       },
     );
 
@@ -130,7 +133,7 @@ export async function addToCart(
       },
       {
         fields:
-          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
+          CART_FIELDS,
       },
     );
 
@@ -155,13 +158,13 @@ export async function removeFromCart(lineItemId: string): Promise<void> {
 
     await sdk.store.cart.deleteLineItem(cart.id, lineItemId, {
       fields:
-        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
+        CART_FIELDS,
     });
 
     // Retrieve updated cart (deleteLineItem returns parent but it might be undefined)
     const { cart: updatedCart } = await sdk.store.cart.retrieve(cart.id, {
       fields:
-        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
+        CART_FIELDS,
     });
 
     $cart.set(updatedCart);
@@ -198,7 +201,7 @@ export async function updateLineItemQuantity(
       },
       {
         fields:
-          "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
+          CART_FIELDS,
       },
     );
 
@@ -244,9 +247,29 @@ export async function addShippingMethod(shippingOptionId: string): Promise<void>
     { option_id: shippingOptionId },
     {
       fields:
-        "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
+        CART_FIELDS,
     },
   );
+
+  $cart.set(updatedCart);
+}
+
+/**
+ * Initiate a payment session for the cart
+ */
+export async function initPaymentSession(providerId: string): Promise<void> {
+  const cart = $cart.get();
+  if (!cart) {
+    throw new Error("Cart not initialized");
+  }
+
+  await sdk.store.payment.initiatePaymentSession(cart, {
+    provider_id: providerId,
+  });
+
+  const { cart: updatedCart } = await sdk.store.cart.retrieve(cart.id, {
+    fields: CART_FIELDS,
+  });
 
   $cart.set(updatedCart);
 }
@@ -278,7 +301,7 @@ export async function updateCartAddress(data: {
 
   const { cart: updatedCart } = await sdk.store.cart.update(cart.id, data, {
     fields:
-      "*items,*items.variant,*items.variant.product,*items.variant.product.images,*items.variant.product.thumbnail,*shipping_address,*billing_address,*shipping_methods",
+      CART_FIELDS,
   });
 
   $cart.set(updatedCart);

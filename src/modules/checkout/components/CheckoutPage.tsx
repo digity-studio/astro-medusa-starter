@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { type RegionCountry } from "./AddressFields";
 import { DeliveryStep } from "./DeliveryStep";
 import { OrderSummary } from "./OrderSummary";
+import { PaymentStep } from "./PaymentStep";
 import { ShippingAddressStep } from "./ShippingAddressStep";
 
 interface CheckoutPageProps {
@@ -16,7 +17,6 @@ type CheckoutStep = "address" | "delivery" | "payment" | "review";
 const VALID_STEPS: CheckoutStep[] = ["address", "delivery", "payment", "review"];
 
 const FUTURE_STEPS: { key: CheckoutStep; label: string }[] = [
-  { key: "payment", label: "Payment" },
   { key: "review", label: "Review" },
 ];
 
@@ -32,10 +32,12 @@ function validateStep(
 ): CheckoutStep {
   const hasAddress = Boolean(cart.shipping_address?.first_name);
   const hasShippingMethod = Boolean(cart.shipping_methods?.length);
+  const hasPaymentSession = Boolean(cart.payment_collection?.payment_sessions?.length);
 
   if (step === "delivery" && !hasAddress) return "address";
   if ((step === "payment" || step === "review") && !hasAddress) return "address";
   if ((step === "payment" || step === "review") && !hasShippingMethod) return "delivery";
+  if (step === "review" && !hasPaymentSession) return "payment";
   return step;
 }
 
@@ -101,6 +103,19 @@ export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
             }
             onContinue={() => goToStep("payment")}
             onEdit={() => goToStep("delivery")}
+          />
+
+          <PaymentStep
+            cart={cart}
+            mode={
+              step === "payment"
+                ? "edit"
+                : step === "review"
+                  ? "read"
+                  : "inactive"
+            }
+            onContinue={() => goToStep("review")}
+            onEdit={() => goToStep("payment")}
           />
 
           {FUTURE_STEPS.map(({ key, label }) => (
