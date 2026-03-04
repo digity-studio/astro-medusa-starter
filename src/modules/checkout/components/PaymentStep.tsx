@@ -1,33 +1,15 @@
 import { sdk } from "@lib/sdk";
-import { initPaymentSession } from "@lib/stores/cart";
+import { completeCart, initPaymentSession } from "@lib/stores/cart";
 import type { StoreCart, StorePaymentProvider } from "@medusajs/types";
+import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useEffect, useState } from "react";
 
 interface PaymentStepProps {
   cart: StoreCart;
-  mode: "edit" | "read" | "inactive";
-  onContinue: () => void;
+  countryCode: string;
+  mode: "edit" | "inactive";
   onEdit?: () => void;
 }
-
-const CheckCircle = () => (
-  <span className="inline-flex items-center justify-center w-5 h-5 bg-black rounded-full shrink-0">
-    <svg
-      className="w-3 h-3 text-white"
-      viewBox="0 0 12 12"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M2 6l3 3 5-5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  </span>
-);
 
 const CardIcon = () => (
   <svg
@@ -46,8 +28,13 @@ const CardIcon = () => (
   </svg>
 );
 
+function isStripeProvider(providerId: string): boolean {
+  return providerId.startsWith("pp_stripe_");
+}
+
 function formatProviderName(providerId: string): string {
   if (providerId === "pp_system_default") return "Manual Payment";
+  if (isStripeProvider(providerId)) return "Credit Card (Stripe)";
   return providerId
     .replace(/^pp_/, "")
     .split("_")
@@ -61,15 +48,17 @@ function isTestProvider(providerId: string): boolean {
 
 export const PaymentStep = ({
   cart,
+  countryCode,
   mode,
-  onContinue,
-  onEdit,
 }: PaymentStepProps) => {
   const [paymentProviders, setPaymentProviders] = useState<StorePaymentProvider[]>([]);
   const [selectedProviderId, setSelectedProviderId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPlacing, setIsPlacing] = useState(false);
   const [error, setError] = useState("");
+  const stripe = useStripe();
+  const elements = useElements();
 
   useEffect(() => {
     if (mode !== "edit") return;
@@ -83,7 +72,6 @@ export const PaymentStep = ({
         });
         setPaymentProviders(payment_providers);
 
-        // Pre-select if cart already has a payment session
         const existingProviderId =
           cart.payment_collection?.payment_sessions?.[0]?.provider_id;
         if (existingProviderId) {
@@ -110,7 +98,6 @@ export const PaymentStep = ({
     } catch (err) {
       console.error("Failed to initialize payment session:", err);
       setError("Failed to set payment method. Please try again.");
-      // Revert to the previously saved provider
       const savedProviderId =
         cart.payment_collection?.payment_sessions?.[0]?.provider_id ?? "";
       setSelectedProviderId(savedProviderId);
@@ -119,40 +106,42 @@ export const PaymentStep = ({
     }
   };
 
+  const handlePlaceOrder = async () => {
+    setIsPlacing(true);
+    setError("");
+    try {
+      if (isStripeProvider(selectedProviderId) && stripe && elements) {
+        const { error: stripeError } = await stripe.confirmPayment({
+          elements,
+          redirect: "if_required",
+        });
+        if (stripeError) {
+          setError(stripeError.message ?? "Payment failed. Please try again.");
+          return;
+        }
+      }
+
+      const result = await completeCart();
+      if (result.type === "order") {
+        try {
+          sessionStorage.setItem("medusa_order", JSON.stringify(result.order));
+        } catch {}
+        window.location.href = `/${countryCode}/order/${result.order.id}`;
+      } else {
+        setError(result.error.message || "Failed to place order. Please try again.");
+      }
+    } catch (err) {
+      console.error("Failed to place order:", err);
+      setError("Failed to place order. Please try again.");
+    } finally {
+      setIsPlacing(false);
+    }
+  };
+
   if (mode === "inactive") {
     return (
       <div className="border-t border-gray-200 pt-6 mt-6">
         <h2 className="text-2xl font-bold text-gray-400">Payment</h2>
-      </div>
-    );
-  }
-
-  if (mode === "read") {
-    const providerId =
-      cart.payment_collection?.payment_sessions?.[0]?.provider_id;
-
-    return (
-      <div className="border-t border-gray-200 pt-6 mt-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            Payment
-            <CheckCircle />
-          </h2>
-          <button
-            type="button"
-            onClick={onEdit}
-            className="text-blue-600 hover:underline text-sm"
-          >
-            Edit
-          </button>
-        </div>
-
-        {providerId && (
-          <div className="text-sm">
-            <p className="font-medium mb-1">Method</p>
-            <p className="text-gray-700">{formatProviderName(providerId)}</p>
-          </div>
-        )}
       </div>
     );
   }
@@ -207,15 +196,24 @@ export const PaymentStep = ({
           </div>
         )}
 
+        {isStripeProvider(selectedProviderId) &&
+          cart.payment_collection?.payment_sessions?.some(
+            (s) => s.provider_id === selectedProviderId,
+          ) && (
+            <div className="mb-6 p-4 border border-gray-200 rounded-md">
+              <PaymentElement />
+            </div>
+          )}
+
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         <button
           type="button"
-          disabled={!selectedProviderId || isSaving}
-          onClick={onContinue}
+          disabled={!selectedProviderId || isSaving || isPlacing}
+          onClick={handlePlaceOrder}
           className="bg-black text-white py-3 px-8 rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Continue to review
+          {isPlacing ? "Placing order..." : "Place order"}
         </button>
       </div>
     </div>

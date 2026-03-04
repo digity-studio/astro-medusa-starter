@@ -1,11 +1,12 @@
 import { $cart } from "@lib/stores/cart";
 import { useStore } from "@nanostores/react";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import { useEffect, useState } from "react";
 import { type RegionCountry } from "./AddressFields";
 import { DeliveryStep } from "./DeliveryStep";
 import { OrderSummary } from "./OrderSummary";
 import { PaymentStep } from "./PaymentStep";
-import { ReviewStep } from "./ReviewStep";
 import { ShippingAddressStep } from "./ShippingAddressStep";
 
 interface CheckoutPageProps {
@@ -13,14 +14,13 @@ interface CheckoutPageProps {
   countries: RegionCountry[];
 }
 
-type CheckoutStep = "address" | "delivery" | "payment" | "review";
+type CheckoutStep = "address" | "delivery" | "payment";
 
-const VALID_STEPS: CheckoutStep[] = [
-  "address",
-  "delivery",
-  "payment",
-  "review",
-];
+const VALID_STEPS: CheckoutStep[] = ["address", "delivery", "payment"];
+
+const stripePromise = import.meta.env.PUBLIC_STRIPE_KEY
+  ? loadStripe(import.meta.env.PUBLIC_STRIPE_KEY)
+  : null;
 
 function readStepFromUrl(): CheckoutStep {
   const params = new URLSearchParams(window.location.search);
@@ -36,22 +36,15 @@ function validateStep(
 ): CheckoutStep {
   const hasAddress = Boolean(cart.shipping_address?.first_name);
   const hasShippingMethod = Boolean(cart.shipping_methods?.length);
-  const hasPaymentSession = Boolean(
-    cart.payment_collection?.payment_sessions?.length,
-  );
 
   if (step === "delivery" && !hasAddress) return "address";
-  if ((step === "payment" || step === "review") && !hasAddress)
-    return "address";
-  if ((step === "payment" || step === "review") && !hasShippingMethod)
-    return "delivery";
-  if (step === "review" && !hasPaymentSession) return "payment";
+  if (step === "payment" && !hasAddress) return "address";
+  if (step === "payment" && !hasShippingMethod) return "delivery";
   return step;
 }
 
 export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
   const cart = useStore($cart);
-  // Used only as a re-render trigger when the URL changes; step is derived below.
   const [, setSearch] = useState(() =>
     typeof window !== "undefined" ? window.location.search : "",
   );
@@ -69,7 +62,6 @@ export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
     setSearch(url.search);
   };
 
-  // Derive current step from URL, validated against cart state.
   const step = cart ? validateStep(readStepFromUrl(), cart) : "address";
 
   if (!cart || !cart.items?.length) {
@@ -87,10 +79,16 @@ export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
     );
   }
 
-  return (
+  const stripeSession = cart.payment_collection?.payment_sessions?.find(
+    (s) => s.provider_id?.startsWith("pp_stripe_"),
+  );
+  const stripeClientSecret = stripeSession?.data?.client_secret as
+    | string
+    | undefined;
+
+  const checkoutContent = (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Left column: checkout steps */}
         <div className="lg:col-span-2 space-y-0">
           <ShippingAddressStep
             cart={cart}
@@ -115,28 +113,25 @@ export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
 
           <PaymentStep
             cart={cart}
-            mode={
-              step === "payment"
-                ? "edit"
-                : step === "review"
-                  ? "read"
-                  : "inactive"
-            }
-            onContinue={() => goToStep("review")}
-            onEdit={() => goToStep("payment")}
-          />
-
-          <ReviewStep
             countryCode={countryCode}
-            mode={step === "review" ? "edit" : "inactive"}
+            mode={step === "payment" ? "edit" : "inactive"}
           />
         </div>
 
-        {/* Right column: order summary */}
         <div className="lg:col-span-1">
           <OrderSummary cart={cart} />
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <Elements
+      key={stripeClientSecret ?? "no-stripe"}
+      stripe={stripePromise}
+      options={stripeClientSecret ? { clientSecret: stripeClientSecret } : undefined}
+    >
+      {checkoutContent}
+    </Elements>
   );
 };
