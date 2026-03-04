@@ -5,6 +5,7 @@ import { type RegionCountry } from "./AddressFields";
 import { DeliveryStep } from "./DeliveryStep";
 import { OrderSummary } from "./OrderSummary";
 import { PaymentStep } from "./PaymentStep";
+import { ReviewStep } from "./ReviewStep";
 import { ShippingAddressStep } from "./ShippingAddressStep";
 
 interface CheckoutPageProps {
@@ -14,16 +15,19 @@ interface CheckoutPageProps {
 
 type CheckoutStep = "address" | "delivery" | "payment" | "review";
 
-const VALID_STEPS: CheckoutStep[] = ["address", "delivery", "payment", "review"];
-
-const FUTURE_STEPS: { key: CheckoutStep; label: string }[] = [
-  { key: "review", label: "Review" },
+const VALID_STEPS: CheckoutStep[] = [
+  "address",
+  "delivery",
+  "payment",
+  "review",
 ];
 
 function readStepFromUrl(): CheckoutStep {
   const params = new URLSearchParams(window.location.search);
   const s = params.get("step");
-  return VALID_STEPS.includes(s as CheckoutStep) ? (s as CheckoutStep) : "address";
+  return VALID_STEPS.includes(s as CheckoutStep)
+    ? (s as CheckoutStep)
+    : "address";
 }
 
 function validateStep(
@@ -32,11 +36,15 @@ function validateStep(
 ): CheckoutStep {
   const hasAddress = Boolean(cart.shipping_address?.first_name);
   const hasShippingMethod = Boolean(cart.shipping_methods?.length);
-  const hasPaymentSession = Boolean(cart.payment_collection?.payment_sessions?.length);
+  const hasPaymentSession = Boolean(
+    cart.payment_collection?.payment_sessions?.length,
+  );
 
   if (step === "delivery" && !hasAddress) return "address";
-  if ((step === "payment" || step === "review") && !hasAddress) return "address";
-  if ((step === "payment" || step === "review") && !hasShippingMethod) return "delivery";
+  if ((step === "payment" || step === "review") && !hasAddress)
+    return "address";
+  if ((step === "payment" || step === "review") && !hasShippingMethod)
+    return "delivery";
   if (step === "review" && !hasPaymentSession) return "payment";
   return step;
 }
@@ -118,11 +126,10 @@ export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
             onEdit={() => goToStep("payment")}
           />
 
-          {FUTURE_STEPS.map(({ key, label }) => (
-            <div key={key} className="border-t border-gray-200 pt-6 mt-6">
-              <h2 className="text-2xl font-bold text-gray-400">{label}</h2>
-            </div>
-          ))}
+          <ReviewStep
+            countryCode={countryCode}
+            mode={step === "review" ? "edit" : "inactive"}
+          />
         </div>
 
         {/* Right column: order summary */}

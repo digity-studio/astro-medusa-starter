@@ -275,6 +275,25 @@ export async function initPaymentSession(providerId: string): Promise<void> {
 }
 
 /**
+ * Complete cart and place the order
+ */
+export async function completeCart() {
+  const cart = $cart.get();
+  if (!cart) {
+    throw new Error("Cart not initialized");
+  }
+
+  const result = await sdk.store.cart.complete(cart.id);
+
+  if (result.type === "order") {
+    clearCartId();
+    $cart.set(null);
+  }
+
+  return result;
+}
+
+/**
  * Update cart shipping address and email
  */
 type CartAddress = {
