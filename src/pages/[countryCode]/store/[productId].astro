@@ -51,7 +51,7 @@ const { cheapestPrice } = getProductPrice({
   {error && <p class="text-red-700">{error.message}</p>}
   {
     product && (
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 -mx-8 px-16">
         <ImageCarouselWrapper
           images={images ?? []}
           alt={title ?? "Product image"}

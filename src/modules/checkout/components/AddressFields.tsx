@@ -121,7 +121,7 @@ export const AddressFields = ({
         <div>
           <select
             {...register(f("country"))}
-            className={`${INPUT_BASE} border-gray-300 bg-white`}
+            className={`${INPUT_BASE} ${errors.country ? "border-red-400" : "border-gray-300"} bg-white`}
           >
             <option disabled value="">
               Country
@@ -132,7 +132,7 @@ export const AddressFields = ({
               </option>
             ))}
           </select>
-          <p className={SPACER} />
+          <p className={ERROR}>{errors.country?.message ?? ""}</p>
         </div>
         <div>
           <input

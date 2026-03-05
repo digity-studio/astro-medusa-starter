@@ -18,7 +18,7 @@ const addressSchema = z.object({
   company: z.string(),
   postalCode: z.string().min(1, "Postal code is required"),
   city: z.string().min(1, "City is required"),
-  country: z.string(),
+  country: z.string().min(1, "Country is required"),
   province: z.string(),
 });
 
@@ -57,6 +57,7 @@ const formSchema = z
       ["address", "Address is required"],
       ["postalCode", "Postal code is required"],
       ["city", "City is required"],
+      ["country", "Country is required"],
     ];
 
     for (const [field, message] of required) {
@@ -109,6 +110,7 @@ function areSameAddress(
 interface ShippingAddressStepProps {
   cart: StoreCart | null;
   countries: RegionCountry[];
+  countryCode: string;
   mode: "edit" | "read";
   onContinue?: () => void;
   onEdit?: () => void;
@@ -221,6 +223,7 @@ const ReadOnlyView = ({
 export const ShippingAddressStep = ({
   cart,
   countries,
+  countryCode,
   mode,
   onContinue,
   onEdit,
@@ -240,7 +243,7 @@ export const ShippingAddressStep = ({
       email: "",
       phone: "",
       billingSameAsShipping: true,
-      shipping: { ...EMPTY_ADDRESS },
+      shipping: { ...EMPTY_ADDRESS, country: countryCode },
       billing: { ...EMPTY_ADDRESS },
     },
   });

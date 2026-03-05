@@ -46,7 +46,10 @@ export const OrderConfirmedPage = ({
     order.shipping_address.postal_code === order.billing_address.postal_code;
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-16" aria-label="Order confirmation">
+    <main
+      className="max-w-2xl mx-auto px-8 py-16"
+      aria-label="Order confirmation"
+    >
       {/* Success header */}
       <div className="text-center mb-12">
         <div
@@ -106,7 +109,9 @@ export const OrderConfirmedPage = ({
                       <div className="w-16 h-16 bg-gray-100 rounded border border-gray-200 shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{item.title}</p>
+                      <p className="font-medium text-sm truncate">
+                        {item.title}
+                      </p>
                       {item.variant_title && (
                         <p className="text-xs text-gray-500 mt-0.5">
                           {item.variant_title}
@@ -223,7 +228,11 @@ export const OrderConfirmedPage = ({
                     {order.shipping_address.postal_code},{" "}
                     {order.shipping_address.city}
                     <br />
-                    {(order.shipping_address as { country?: { display_name?: string } }).country?.display_name ??
+                    {(
+                      order.shipping_address as {
+                        country?: { display_name?: string };
+                      }
+                    ).country?.display_name ??
                       order.shipping_address.country_code?.toUpperCase()}
                   </address>
                 </div>
@@ -279,7 +288,9 @@ export const OrderConfirmedPage = ({
                   2
                 </span>
                 <span>
-                  <strong className="text-gray-900">Shipment Notification</strong>{" "}
+                  <strong className="text-gray-900">
+                    Shipment Notification
+                  </strong>{" "}
                   — You&apos;ll receive an email with tracking information when
                   your order ships.
                 </span>

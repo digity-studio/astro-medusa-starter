@@ -79,20 +79,21 @@ export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
     );
   }
 
-  const stripeSession = cart.payment_collection?.payment_sessions?.find(
-    (s) => s.provider_id?.startsWith("pp_stripe_"),
+  const stripeSession = cart.payment_collection?.payment_sessions?.find((s) =>
+    s.provider_id?.startsWith("pp_stripe_"),
   );
   const stripeClientSecret = stripeSession?.data?.client_secret as
     | string
     | undefined;
 
   const checkoutContent = (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-0">
           <ShippingAddressStep
             cart={cart}
             countries={countries}
+            countryCode={countryCode}
             mode={step === "address" ? "edit" : "read"}
             onContinue={() => goToStep("delivery")}
             onEdit={() => goToStep("address")}
@@ -129,7 +130,9 @@ export const CheckoutPage = ({ countryCode, countries }: CheckoutPageProps) => {
     <Elements
       key={stripeClientSecret ?? "no-stripe"}
       stripe={stripePromise}
-      options={stripeClientSecret ? { clientSecret: stripeClientSecret } : undefined}
+      options={
+        stripeClientSecret ? { clientSecret: stripeClientSecret } : undefined
+      }
     >
       {checkoutContent}
     </Elements>

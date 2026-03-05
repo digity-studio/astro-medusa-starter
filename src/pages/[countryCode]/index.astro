@@ -1,10 +1,72 @@
 ---
+import { getRegion } from "@lib/data/regions";
+import { Image } from "astro:assets";
+import { getLiveCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import { getRegionParams } from "../../lib/params/region-params";
 
 export const getStaticPaths = getRegionParams;
+
+const { countryCode } = Astro.params;
+
+const region = await getRegion(countryCode);
+
+const { entries: products } = region
+  ? await getLiveCollection("products", { regionId: region.id })
+  : { entries: [] };
+
+const firstProduct = products?.[0]?.data;
+const heroImage = firstProduct?.thumbnail ?? firstProduct?.images?.[0]?.url;
 ---
 
 <Layout>
-  <h1>Hello from {Astro.params.countryCode}</h1>
+  <section
+    class="flex items-center h-[90vh] gap-12 -mx-8 px-16 rounded-2xl overflow-hidden lg:bg-[#F7F7FA]"
+  >
+    <div class="flex flex-col gap-6 w-full md:flex-1 md:max-w-2xl">
+      <h1 class="text-5xl font-bold leading-tight tracking-tight">
+        Astro + Medusa e-commerce starter template
+      </h1>
+      <p class="text-gray-500 text-base leading-relaxed">
+        This template is a good way to start building your e-commerce store with
+        maximum performance in mind.
+      </p>
+      <div class="flex items-center gap-4 mt-2">
+        <a
+          href="https://github.com/Bystrol/astro-medusa-starter"
+          target="_blank"
+          class="px-6 py-3 bg-black text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors"
+        >
+          Open Github
+        </a>
+        <a
+          href={`/${countryCode}/store`}
+          class="px-6 py-3 border border-black text-black text-sm font-medium rounded-full hover:bg-gray-100 transition-colors"
+        >
+          Browse products
+        </a>
+      </div>
+    </div>
+
+    <div
+      class="hidden md:flex flex-1 relative items-center justify-center h-full"
+    >
+      {
+        heroImage ? (
+          <Image
+            src={heroImage}
+            width={800}
+            height={900}
+            alt={firstProduct?.title ?? "Featured product"}
+            widths={[400, 600, 800]}
+            sizes="(max-width: 1024px) 50vw, 40vw"
+            quality={80}
+            class="relative z-10 w-full h-full object-contain scale-200 -right-120"
+          />
+        ) : (
+          <div class="relative z-10 w-full max-w-lg h-[500px] bg-linear-to-br from-gray-800 to-gray-950 rounded-3xl shadow-2xl" />
+        )
+      }
+    </div>
+  </section>
 </Layout>

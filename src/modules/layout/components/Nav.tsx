@@ -27,17 +27,21 @@ export const Nav = ({ countryCode, regionId }: NavProps) => {
   };
 
   return (
-    <header className="flex items-center justify-between w-full pb-8 mb-8 border-b border-gray-200">
-      <div className="flex items-center">
-        <a
-          href={`/${countryCode}`}
-          className="text-xl font-bold uppercase tracking-wide"
-        >
-          Astro Medusa Store
+    <header className="flex items-center w-full p-8 ">
+      <div className="flex items-center gap-6 flex-1">
+        <a href={`/${countryCode}/store`} className="text-sm hover:underline">
+          Products
         </a>
       </div>
 
-      <div className="flex items-center gap-6">
+      <a
+        href={`/${countryCode}`}
+        className="text-xl font-bold uppercase tracking-wide"
+      >
+        Astro Medusa Store
+      </a>
+
+      <div className="flex items-center gap-6 flex-1 justify-end">
         <button
           onClick={handleCartClick}
           className="text-sm hover:underline relative"
