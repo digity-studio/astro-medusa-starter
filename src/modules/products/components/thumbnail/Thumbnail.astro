@@ -5,9 +5,10 @@ import PlaceholderImage from "./PlaceholderImage.astro";
 interface Props {
   imageUrl?: string;
   title: string;
+  priority?: boolean;
 }
 
-const { imageUrl, title } = Astro.props;
+const { imageUrl, title, priority = false } = Astro.props;
 ---
 
 <div
@@ -21,10 +22,11 @@ const { imageUrl, title } = Astro.props;
           width={512}
           height={640}
           alt={title}
-          layout="constrained"
           widths={[256, 384, 512]}
           sizes="(max-width: 768px) 50vw, (max-width: 1536px) 33vw, 25vw"
           quality={45}
+          loading={priority ? "eager" : "lazy"}
+          fetchpriority={priority ? "high" : "auto"}
         />
       ) : (
         <PlaceholderImage size={24} />

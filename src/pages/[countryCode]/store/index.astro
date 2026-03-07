@@ -45,7 +45,7 @@ if (cacheHint?.lastModified) {
       class="grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 w-full gap-x-6 gap-y-8"
     >
       {
-        products?.map(({ data }) => (
+        products?.map(({ data }, index) => (
           <li>
             <ProductPreview
               id={data.id}
@@ -53,6 +53,7 @@ if (cacheHint?.lastModified) {
               thumbnailUrl={data.thumbnail ?? undefined}
               imageUrl={data.images?.[0]?.url}
               title={data.title}
+              priority={index < 4}
             />
           </li>
         ))
