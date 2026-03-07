@@ -27,7 +27,7 @@ export const Nav = ({ countryCode, regionId }: NavProps) => {
   };
 
   return (
-    <header className="flex items-center w-full p-8 ">
+    <header className="flex items-center w-full p-8 h-24">
       <div className="flex items-center gap-6 flex-1">
         <a href={`/${countryCode}/store`} className="text-sm hover:underline">
           Products
