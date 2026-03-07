@@ -1,7 +1,7 @@
 ---
 import { getRegion } from "@lib/data/regions";
+import { listProducts } from "@lib/data/products";
 import { Image } from "astro:assets";
-import { getLiveCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import { getRegionParams } from "../../lib/params/region-params";
 
@@ -11,11 +11,9 @@ const { countryCode } = Astro.params;
 
 const region = await getRegion(countryCode);
 
-const { entries: products } = region
-  ? await getLiveCollection("products", { regionId: region.id })
-  : { entries: [] };
+const products = region ? await listProducts(region.id).catch(() => []) : [];
 
-const firstProduct = products?.[0]?.data;
+const firstProduct = products?.[0];
 const heroImage = firstProduct?.thumbnail ?? firstProduct?.images?.[0]?.url;
 ---
 

@@ -1,12 +1,12 @@
 ---
 import Layout from "@layouts/Layout.astro";
+import { retrieveProduct } from "@lib/data/products";
 import { getRegion } from "@lib/data/regions";
 import { getProductParams } from "@lib/params/product-params";
 import { getProductPrice } from "@lib/utils/get-product-price";
 import ImageCarouselWrapper from "@modules/products/components/product-details/image-carousel/ImageCarouselWrapper.astro";
 import { ProductActions } from "@modules/products/components/product-details/ProductActions";
 import ProductAttributes from "@modules/products/components/product-details/ProductAttributes.astro";
-import { getLiveEntry } from "astro:content";
 
 export const getStaticPaths = getProductParams;
 
@@ -22,10 +22,15 @@ if (!region) {
   return Astro.redirect("/not-found");
 }
 
-const { entry: product, error } = await getLiveEntry("products", {
-  id: productId,
-  regionId: region.id,
-});
+let product: Awaited<ReturnType<typeof retrieveProduct>> | undefined;
+let error: Error | undefined;
+
+try {
+  product = await retrieveProduct(productId, region.id);
+} catch (e) {
+  error = e instanceof Error ? e : new Error("Unknown error");
+  console.error(error);
+}
 
 const {
   title,
@@ -40,7 +45,7 @@ const {
   length,
   width,
   height,
-} = product?.data ?? {};
+} = product ?? {};
 
 const { cheapestPrice } = getProductPrice({
   productVariants: variants ?? [],
@@ -74,10 +79,10 @@ const { cheapestPrice } = getProductPrice({
             material={material}
             origin_country={origin_country}
             type={type}
-            weight={weight}
-            length={length}
-            width={width}
-            height={height}
+            weight={String(weight)}
+            length={String(length)}
+            width={String(width)}
+            height={String(height)}
           />
         </div>
       </div>

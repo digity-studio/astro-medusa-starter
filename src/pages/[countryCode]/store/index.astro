@@ -1,9 +1,9 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import { getRegion } from "@lib/data/regions";
+import { listProducts } from "@lib/data/products";
 import { getRegionParams } from "@lib/params/region-params";
 import ProductPreview from "@modules/products/components/product-preview/ProductPreview.astro";
-import { getLiveCollection } from "astro:content";
 
 export const getStaticPaths = getRegionParams;
 
@@ -15,25 +15,14 @@ if (!region) {
   return Astro.redirect("/not-found");
 }
 
-const {
-  entries: products,
-  error,
-  cacheHint,
-} = await getLiveCollection("products", { regionId: region.id });
+let products: Awaited<ReturnType<typeof listProducts>> = [];
+let error: Error | undefined;
 
-if (error) {
+try {
+  products = await listProducts(region.id);
+} catch (e) {
+  error = e instanceof Error ? e : new Error("Unknown error");
   console.error(error);
-}
-
-if (cacheHint?.tags) {
-  Astro.response.headers.set("Cache-Tag", cacheHint.tags.join(","));
-}
-
-if (cacheHint?.lastModified) {
-  Astro.response.headers.set(
-    "Last-Modified",
-    cacheHint.lastModified.toISOString()
-  );
 }
 ---
 
@@ -45,14 +34,14 @@ if (cacheHint?.lastModified) {
       class="grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 w-full gap-x-6 gap-y-8"
     >
       {
-        products?.map(({ data }, index) => (
+        products?.map((product, index) => (
           <li>
             <ProductPreview
-              id={data.id}
-              variants={data.variants ?? []}
-              thumbnailUrl={data.thumbnail ?? undefined}
-              imageUrl={data.images?.[0]?.url}
-              title={data.title}
+              id={product.id}
+              variants={product.variants ?? []}
+              thumbnailUrl={product.thumbnail ?? undefined}
+              imageUrl={product.images?.[0]?.url}
+              title={product.title}
               priority={index < 4}
             />
           </li>

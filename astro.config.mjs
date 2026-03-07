@@ -16,9 +16,6 @@ export default defineConfig({
     ssr: {
       noExternal: ["@medusajs/js-sdk"],
     },
-    optimizeDeps: {
-      include: ["react-dom/client"],
-    },
     plugins: [tailwindcss()],
   },
   image: {
