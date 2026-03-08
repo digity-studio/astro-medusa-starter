@@ -17,7 +17,10 @@ const firstProduct = products?.[0];
 const heroImage = firstProduct?.thumbnail ?? firstProduct?.images?.[0]?.url;
 ---
 
-<Layout>
+<Layout
+  description="E-commerce starter template built with Astro and Medusa for maximum performance. Browse our collection of products."
+  image={heroImage}
+>
   <section
     class="flex items-center h-[calc(100vh-96px)] gap-12 -mx-8 px-16 rounded-2xl overflow-hidden lg:bg-[#F7F7FA]"
   >

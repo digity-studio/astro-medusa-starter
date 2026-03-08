@@ -52,7 +52,12 @@ const { cheapestPrice } = getProductPrice({
 });
 ---
 
-<Layout>
+<Layout
+  title={title}
+  description={description ?? `Shop ${title} at the best price.`}
+  image={images?.[0]?.url}
+  type="product"
+>
   {error && <p class="text-red-700">{error.message}</p>}
   {
     product && (

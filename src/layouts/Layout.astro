@@ -5,6 +5,29 @@ import { Nav } from "@modules/layout/components/Nav";
 import "@styles/global.css";
 import { ClientRouter } from "astro:transitions";
 
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "product";
+  noindex?: boolean;
+}
+
+const SITE_NAME = "Astro + Medusa Starter";
+const DEFAULT_DESCRIPTION =
+  "E-commerce starter template built with Astro and Medusa for maximum performance.";
+
+const {
+  title,
+  description = DEFAULT_DESCRIPTION,
+  image,
+  type = "website",
+  noindex = false,
+} = Astro.props;
+
+const pageTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+
 const { countryCode } = Astro.params;
 
 if (!countryCode) {
@@ -33,7 +56,26 @@ const regionId = region?.id || null;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
-    <title>Astro + Medusa Starter</title>
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl.href} />
+
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl.href} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    {image && <meta property="og:image" content={image} />}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    {image && <meta name="twitter:image" content={image} />}
   </head>
   <body>
     <Nav client:load countryCode={countryCode} regionId={regionId} />
