@@ -1,8 +1,19 @@
 import { defineConfig } from "astro/config";
+import { loadEnv } from "vite";
 
 import cloudflare from "@astrojs/cloudflare";
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
+
+const { PUBLIC_MEDUSA_BACKEND_URL } = loadEnv(
+  process.env.NODE_ENV ?? "",
+  process.cwd(),
+  "",
+);
+
+const medusaBackendDomain = PUBLIC_MEDUSA_BACKEND_URL
+  ? new URL(PUBLIC_MEDUSA_BACKEND_URL).hostname
+  : undefined;
 
 // https://astro.build/config
 export default defineConfig({
@@ -21,6 +32,9 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   image: {
-    domains: ["medusa-public-images.s3.eu-west-1.amazonaws.com"],
+    domains: [
+      "medusa-public-images.s3.eu-west-1.amazonaws.com",
+      ...(medusaBackendDomain ?? []),
+    ],
   },
 });
