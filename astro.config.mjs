@@ -5,7 +5,7 @@ import cloudflare from "@astrojs/cloudflare";
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 
-const { PUBLIC_MEDUSA_BACKEND_URL } = loadEnv(
+const { PUBLIC_MEDUSA_BACKEND_URL, S3_DOMAIN } = loadEnv(
   process.env.NODE_ENV ?? "",
   process.cwd(),
   "",
@@ -35,6 +35,7 @@ export default defineConfig({
     domains: [
       "medusa-public-images.s3.eu-west-1.amazonaws.com",
       ...(medusaBackendDomain ? [medusaBackendDomain] : []),
+      ...(S3_DOMAIN ? [S3_DOMAIN] : []),
     ],
   },
 });

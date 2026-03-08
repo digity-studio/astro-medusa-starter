@@ -91,6 +91,7 @@ PUBLIC_MEDUSA_BACKEND_URL=http://localhost:9000
 PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_...
 DEFAULT_REGION=us
 PUBLIC_STRIPE_KEY=pk_test_...
+S3_DOMAIN=your-bucket.s3.us-east-1.amazonaws.com
 ```
 
 > Make sure your Medusa backend has [CORS configured](https://docs.medusajs.com/learn/configurations/medusa-config#httpstorecors) to allow requests from your storefront origin.
