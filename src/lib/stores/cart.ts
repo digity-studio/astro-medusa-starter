@@ -283,14 +283,30 @@ export async function completeCart() {
     throw new Error("Cart not initialized");
   }
 
-  const result = await sdk.store.cart.complete(cart.id);
+  try {
+    const result = await sdk.store.cart.complete(cart.id);
 
-  if (result.type === "order") {
-    clearCartId();
-    $cart.set(null);
+    if (result.type === "order") {
+      clearCartId();
+      $cart.set(null);
+    }
+
+    return result;
+  } catch (error: unknown) {
+    // If we get a conflict (idempotency error), the cart was likely already
+    // completed by a payment provider webhook. Clear the cart and signal
+    // the caller so it can show a success message.
+    if (
+      error instanceof Object &&
+      "code" in error &&
+      (error as { code: string }).code === "invalid_state_error"
+    ) {
+      clearCartId();
+      $cart.set(null);
+      return { type: "already_completed" as const };
+    }
+    throw error;
   }
-
-  return result;
 }
 
 /**

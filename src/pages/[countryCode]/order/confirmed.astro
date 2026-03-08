@@ -1,0 +1,22 @@
+---
+export const prerender = false;
+
+import Layout from "@layouts/Layout.astro";
+
+const { countryCode } = Astro.params;
+---
+
+<Layout title="Order Confirmed" description="Your order has been confirmed." noindex>
+  <div class="max-w-2xl mx-auto px-4 py-16 text-center">
+    <h1 class="text-3xl font-bold mb-4">Thank you for your order!</h1>
+    <p class="text-gray-600 mb-8">
+      Your order has been placed successfully. You will receive a confirmation email shortly.
+    </p>
+    <a
+      href={`/${countryCode}/store`}
+      class="inline-block bg-black text-white py-3 px-8 rounded-md hover:bg-gray-800 transition-colors"
+    >
+      Continue shopping
+    </a>
+  </div>
+</Layout>

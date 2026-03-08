@@ -127,6 +127,8 @@ export const PaymentStep = ({
           sessionStorage.setItem("medusa_order", JSON.stringify(result.order));
         } catch {}
         window.location.href = `/${countryCode}/order/${result.order.id}`;
+      } else if (result.type === "already_completed") {
+        window.location.href = `/${countryCode}/order/confirmed`;
       } else {
         setError(result.error.message || "Failed to place order. Please try again.");
       }
