@@ -77,6 +77,8 @@ const { cheapestPrice } = getProductPrice({
           <ProductActions
             options={options ?? []}
             variants={variants ?? []}
+            productId={productId}
+            regionId={region.id}
             client:visible
           />
 

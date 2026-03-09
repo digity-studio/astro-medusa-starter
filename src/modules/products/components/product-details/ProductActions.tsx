@@ -1,7 +1,21 @@
+import { sdk } from "@lib/sdk";
 import { addToCart } from "@lib/stores/cart";
 import { isProductInStock } from "@lib/utils/is-product-in-stock";
 import clsx from "clsx";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+type Variant = {
+  id: string;
+  options:
+    | {
+        id: string;
+        option_id?: string | null;
+      }[]
+    | null;
+  manage_inventory: boolean | null;
+  allow_backorder: boolean | null;
+  inventory_quantity?: number | null;
+};
 
 interface Props {
   options: {
@@ -12,25 +26,53 @@ interface Props {
       value: string;
     }[];
   }[];
-  variants: {
-    id: string;
-    options:
-      | {
-          id: string;
-          option_id?: string | null;
-        }[]
-      | null;
-    manage_inventory: boolean | null;
-    allow_backorder: boolean | null;
-    inventory_quantity?: number | null;
-  }[];
+  variants: Variant[];
+  productId: string;
+  regionId: string;
 }
 
-export const ProductActions = ({ options, variants }: Props) => {
+export const ProductActions = ({
+  options,
+  variants: initialVariants,
+  productId,
+  regionId,
+}: Props) => {
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
   >({});
   const [isAdding, setIsAdding] = useState(false);
+  const [variants, setVariants] = useState<Variant[]>(initialVariants);
+  const [isLoadingVariants, setIsLoadingVariants] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchFreshVariants() {
+      try {
+        const { product } = await sdk.store.product.retrieve(productId, {
+          region_id: regionId,
+          fields:
+            "+variants.inventory_quantity,*variants.options",
+        });
+
+        if (!cancelled && product?.variants) {
+          setVariants(product.variants as Variant[]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch fresh variant data:", error);
+      } finally {
+        if (!cancelled) {
+          setIsLoadingVariants(false);
+        }
+      }
+    }
+
+    fetchFreshVariants();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [productId, regionId]);
 
   const selectedVariant = useMemo(() => {
     if (
@@ -67,7 +109,10 @@ export const ProductActions = ({ options, variants }: Props) => {
   };
 
   const isAddToCardButtonDisabled =
-    !selectedVariant || !isProductInStock(selectedVariant) || isAdding;
+    !selectedVariant ||
+    isLoadingVariants ||
+    !isProductInStock(selectedVariant) ||
+    isAdding;
 
   if (options.length === 0) {
     return null;
