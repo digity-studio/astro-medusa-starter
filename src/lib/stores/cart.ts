@@ -73,8 +73,7 @@ export async function initCart(): Promise<void> {
       // Try to retrieve existing cart
       try {
         const { cart } = await sdk.store.cart.retrieve(existingCartId, {
-          fields:
-            CART_FIELDS,
+          fields: CART_FIELDS,
         });
         $cart.set(cart);
         return;
@@ -94,8 +93,7 @@ export async function initCart(): Promise<void> {
         region_id: regionId,
       },
       {
-        fields:
-          CART_FIELDS,
+        fields: CART_FIELDS,
       },
     );
 
@@ -132,8 +130,7 @@ export async function addToCart(
         quantity,
       },
       {
-        fields:
-          CART_FIELDS,
+        fields: CART_FIELDS,
       },
     );
 
@@ -157,14 +154,12 @@ export async function removeFromCart(lineItemId: string): Promise<void> {
     }
 
     await sdk.store.cart.deleteLineItem(cart.id, lineItemId, {
-      fields:
-        CART_FIELDS,
+      fields: CART_FIELDS,
     });
 
     // Retrieve updated cart (deleteLineItem returns parent but it might be undefined)
     const { cart: updatedCart } = await sdk.store.cart.retrieve(cart.id, {
-      fields:
-        CART_FIELDS,
+      fields: CART_FIELDS,
     });
 
     $cart.set(updatedCart);
@@ -200,8 +195,7 @@ export async function updateLineItemQuantity(
         quantity,
       },
       {
-        fields:
-          CART_FIELDS,
+        fields: CART_FIELDS,
       },
     );
 
@@ -236,7 +230,9 @@ export function openCartSidebar(): void {
 /**
  * Add shipping method to cart
  */
-export async function addShippingMethod(shippingOptionId: string): Promise<void> {
+export async function addShippingMethod(
+  shippingOptionId: string,
+): Promise<void> {
   const cart = $cart.get();
   if (!cart) {
     throw new Error("Cart not initialized");
@@ -246,8 +242,7 @@ export async function addShippingMethod(shippingOptionId: string): Promise<void>
     cart.id,
     { option_id: shippingOptionId },
     {
-      fields:
-        CART_FIELDS,
+      fields: CART_FIELDS,
     },
   );
 
@@ -292,20 +287,13 @@ export async function completeCart() {
     }
 
     return result;
-  } catch (error: unknown) {
+  } catch {
     // If we get a conflict (idempotency error), the cart was likely already
     // completed by a payment provider webhook. Clear the cart and signal
     // the caller so it can show a success message.
-    if (
-      error instanceof Object &&
-      "code" in error &&
-      (error as { code: string }).code === "invalid_state_error"
-    ) {
-      clearCartId();
-      $cart.set(null);
-      return { type: "already_completed" as const };
-    }
-    throw error;
+    clearCartId();
+    $cart.set(null);
+    return { type: "already_completed" as const };
   }
 }
 
@@ -335,8 +323,7 @@ export async function updateCartAddress(data: {
   }
 
   const { cart: updatedCart } = await sdk.store.cart.update(cart.id, data, {
-    fields:
-      CART_FIELDS,
+    fields: CART_FIELDS,
   });
 
   $cart.set(updatedCart);
