@@ -9,15 +9,15 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.6.12",
-    "@astrojs/react": "^4.4.2",
+    "@astrojs/cloudflare": "13.1.1",
+    "@astrojs/react": "5.0.0",
     "@hookform/resolvers": "^5.2.2",
     "@medusajs/js-sdk": "^2.13.1",
     "@nanostores/react": "^1.0.0",
     "@stripe/react-stripe-js": "^5.6.1",
     "@stripe/stripe-js": "^8.9.0",
     "@tailwindcss/vite": "^4.1.18",
-    "astro": "^5",
+    "astro": "6.0.4",
     "clsx": "^2.1.1",
     "nanostores": "^1.1.0",
     "react": "^19.2.4",

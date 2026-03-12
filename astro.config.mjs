@@ -26,8 +26,8 @@ export default defineConfig({
     host: true,
   },
   vite: {
-    ssr: {
-      noExternal: ["@medusajs/js-sdk"],
+    resolve: {
+      dedupe: ["react", "react-dom"],
     },
     plugins: [tailwindcss()],
   },

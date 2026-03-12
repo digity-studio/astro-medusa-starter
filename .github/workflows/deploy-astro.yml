@@ -1,0 +1,39 @@
+name: Deploy Astro Storefront
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build
+        run: yarn build
+        env:
+          PUBLIC_MEDUSA_BACKEND_URL: ${{ vars.PUBLIC_MEDUSA_BACKEND_URL }}
+          PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${{ vars.PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
+          DEFAULT_REGION: ${{ vars.DEFAULT_REGION }}
+          PUBLIC_STRIPE_KEY: ${{ vars.PUBLIC_STRIPE_KEY }}
+          S3_DOMAIN: ${{ vars.S3_DOMAIN }}
+
+      - name: Deploy to Cloudflare Workers
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
