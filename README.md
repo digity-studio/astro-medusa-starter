@@ -1,6 +1,6 @@
 # Astro Medusa Storefront
 
-A blazing-fast, open-source ecommerce storefront built with **Astro**, **React**, and **Medusa v2** — deployed to the edge on **Cloudflare Pages**.
+A blazing-fast, open-source ecommerce storefront built with **Astro**, **React**, and **Medusa v2** — deployed to the edge on **Cloudflare Workers**.
 
 Static-first architecture. Interactive where it matters. Zero compromise on performance.
 
@@ -15,13 +15,13 @@ Static-first architecture. Interactive where it matters. Zero compromise on perf
 | Payments   | [Stripe](https://stripe.com) — secure checkout                                           |
 | State      | [Nanostores](https://github.com/nanostores/nanostores) — tiny, framework-agnostic stores |
 | Forms      | [React Hook Form](https://react-hook-form.com) + [Zod](https://zod.dev) validation       |
-| Deployment | [Cloudflare Pages](https://pages.cloudflare.com) — edge-first                            |
+| Deployment | [Cloudflare Workers](https://workers.cloudflare.com) — edge-first                          |
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                  Cloudflare Pages               │
+│                Cloudflare Workers                │
 │                                                 │
 │   ┌──────────┐  ┌──────────┐  ┌──────────────┐  │
 │   │  Static  │  │  Astro   │  │    React     │  │
@@ -107,7 +107,7 @@ yarn dev        # Start dev server on localhost:8000
 ### Production
 
 ```bash
-yarn build      # Build for Cloudflare Pages
+yarn build      # Build for Cloudflare Workers
 yarn preview    # Preview the production build locally
 ```
 
@@ -141,7 +141,7 @@ src/
 
 - **Islands architecture** — React only loads for interactive components (cart, nav, checkout). Everything else ships as zero-JS static HTML.
 - **Real-time inventory checks** — Product variant stock data is fetched client-side on page load, ensuring accurate availability even though pages are statically generated.
-- **Edge deployment** — Cloudflare Pages adapter means your storefront runs close to your customers, everywhere.
+- **Edge deployment** — Cloudflare Workers adapter means your storefront runs close to your customers, everywhere.
 - **Tailwind v4** — No config file. Theme customization lives in CSS with `@theme`. Powered by the Vite plugin.
 - **Region-aware routing** — Country code in the URL drives pricing, currency, and available shipping options — all resolved via Medusa regions.
 
