@@ -6,6 +6,9 @@ on:
 
   workflow_dispatch:
 
+  repository_dispatch:
+    types: [redeploy]
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

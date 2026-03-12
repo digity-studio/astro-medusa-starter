@@ -8,7 +8,7 @@ Static-first architecture. Interactive where it matters. Zero compromise on perf
 
 | Layer      | Technology                                                                               |
 | ---------- | ---------------------------------------------------------------------------------------- |
-| Framework  | [Astro 5](https://astro.build) — static HTML, islands of interactivity                   |
+| Framework  | [Astro 6](https://astro.build) — static HTML, islands of interactivity                   |
 | UI         | [React 19](https://react.dev) — only where you need it                                   |
 | Styling    | [Tailwind CSS v4](https://tailwindcss.com) — zero-config Vite plugin                     |
 | Backend    | [Medusa v2](https://medusajs.com) — headless commerce engine                             |
