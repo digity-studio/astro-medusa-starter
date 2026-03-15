@@ -1,0 +1,12 @@
+---
+alwaysApply: true
+---
+
+# Project Rules
+
+Read and follow the rules in these files before writing any code:
+
+- `.agents/rules/architecture.md` — rendering model, routing, Tailwind v4, Cloudflare edge
+- `.agents/rules/astro-conventions.md` — island hydration strategy, state management
+- `.agents/skills/building-storefronts/SKILL.md` — SDK, React Query, Medusa API
+- `.agents/skills/storefront-best-practices/SKILL.md` — UI/UX, components, backend integration
