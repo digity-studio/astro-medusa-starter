@@ -85,12 +85,16 @@ export const ConfirmedFallbackPage = ({
             </h2>
             <div className="divide-y divide-gray-100 border border-gray-200 rounded-md overflow-hidden">
               {cart.items?.map((item) => {
+                const thumbnailUrl =
+                  item.variant?.product?.thumbnail ||
+                  item.variant?.product?.images?.[0]?.url;
+
                 const lineTotal = (item.unit_price ?? 0) * (item.quantity ?? 1);
                 return (
                   <div key={item.id} className="flex gap-4 p-4">
-                    {item.thumbnail ? (
+                    {thumbnailUrl ? (
                       <img
-                        src={item.thumbnail}
+                        src={thumbnailUrl}
                         alt={item.title}
                         className="w-16 h-16 object-cover rounded border border-gray-200 shrink-0"
                         loading="lazy"
