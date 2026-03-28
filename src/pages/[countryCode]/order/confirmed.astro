@@ -1,10 +1,10 @@
 ---
-export const prerender = false;
-
 import Layout from "@layouts/Layout.astro";
+import { getRegionParams } from "@lib/params/region-params";
+
+export const getStaticPaths = getRegionParams;
 
 const { countryCode } = Astro.params;
-const storeHref = `/${String(countryCode)}/store`;
 ---
 
 <Layout title="Order Confirmed" description="Your order has been confirmed." noindex>
@@ -19,7 +19,7 @@ const storeHref = `/${String(countryCode)}/store`;
       Your order has been placed successfully. You will receive a confirmation email shortly.
     </p>
     <a
-      href={storeHref}
+      href={`/${countryCode}/store`}
       class="inline-block bg-black text-white py-3 px-8 rounded-md hover:bg-gray-800 transition-colors"
     >
       Continue shopping
