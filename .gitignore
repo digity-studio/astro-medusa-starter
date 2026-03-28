@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # yarn
 .yarn/install-state.gz
+
+# cloudflare
+.wrangler/
