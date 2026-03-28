@@ -270,7 +270,11 @@ export async function initPaymentSession(providerId: string): Promise<void> {
 }
 
 /**
- * Complete cart and place the order
+ * Complete cart and place the order.
+ *
+ * If the first attempt fails (e.g. a payment-provider webhook already
+ * completed the cart), we retry once — Medusa v2 cart completion is
+ * idempotent and will return the existing order on the second call.
  */
 export async function completeCart() {
   const cart = $cart.get();
@@ -278,22 +282,29 @@ export async function completeCart() {
     throw new Error("Cart not initialized");
   }
 
-  try {
-    const result = await sdk.store.cart.complete(cart.id);
+  const cartId = cart.id;
 
+  const doComplete = async () => {
+    const result = await sdk.store.cart.complete(cartId);
     if (result.type === "order") {
       clearCartId();
       $cart.set(null);
     }
-
     return result;
+  };
+
+  try {
+    return await doComplete();
   } catch {
-    // If we get a conflict (idempotency error), the cart was likely already
-    // completed by a payment provider webhook. Clear the cart and signal
-    // the caller so it can show a success message.
-    clearCartId();
-    $cart.set(null);
-    return { type: "already_completed" as const };
+    // The cart was likely already completed by a payment-provider webhook.
+    // Retry once — Medusa returns the existing order for completed carts.
+    try {
+      return await doComplete();
+    } catch {
+      clearCartId();
+      $cart.set(null);
+      return { type: "already_completed" as const };
+    }
   }
 }
 
