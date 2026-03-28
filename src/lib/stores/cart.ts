@@ -270,7 +270,7 @@ export async function initPaymentSession(providerId: string): Promise<void> {
 }
 
 /**
- * Complete cart and place the order
+ * Complete cart and place the order.
  */
 export async function completeCart() {
   const cart = $cart.get();

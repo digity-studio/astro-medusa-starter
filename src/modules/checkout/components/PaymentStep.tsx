@@ -121,10 +121,17 @@ export const PaymentStep = ({
         }
       }
 
+      // Save cart snapshot before completion so the fallback confirmation
+      // page can still display items, addresses, and totals on a 409.
+      try {
+        sessionStorage.setItem("medusa_cart_snapshot", JSON.stringify(cart));
+      } catch {}
+
       const result = await completeCart();
       if (result.type === "order") {
         try {
           sessionStorage.setItem("medusa_order", JSON.stringify(result.order));
+          sessionStorage.removeItem("medusa_cart_snapshot");
         } catch {}
         window.location.href = `/${countryCode}/order/${result.order.id}`;
       } else if (result.type === "already_completed") {

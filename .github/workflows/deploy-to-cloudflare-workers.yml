@@ -1,7 +1,10 @@
-name: Deploy Astro Storefront
+name: Deploy to Cloudflare Workers
 
 on:
   push:
+    branches: [main]
+
+  pull_request:
     branches: [main]
 
   workflow_dispatch:
@@ -36,7 +39,15 @@ jobs:
           S3_DOMAIN: ${{ vars.S3_DOMAIN }}
 
       - name: Deploy to Cloudflare Workers
+        if: github.event_name != 'pull_request'
         run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy preview to Cloudflare Workers
+        if: github.event_name == 'pull_request'
+        run: npx wrangler deploy --name astro-medusa-starter-preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
