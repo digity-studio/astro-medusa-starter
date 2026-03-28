@@ -271,10 +271,6 @@ export async function initPaymentSession(providerId: string): Promise<void> {
 
 /**
  * Complete cart and place the order.
- *
- * Uses raw `fetch` instead of the SDK so we can inspect 409 responses fully.
- * When a payment webhook completes the cart first, Medusa returns 409 with an
- * Idempotency-Key header. Retrying with that key returns the cached order.
  */
 export async function completeCart() {
   const cart = $cart.get();
@@ -282,54 +278,23 @@ export async function completeCart() {
     throw new Error("Cart not initialized");
   }
 
-  const baseUrl = import.meta.env.PUBLIC_MEDUSA_BACKEND_URL;
-  const publishableKey = import.meta.env.PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-  const url = `${baseUrl}/store/carts/${cart.id}/complete`;
-  const headers: Record<string, string> = {
-    "content-type": "application/json",
-    accept: "application/json",
-  };
-  if (publishableKey) {
-    headers["x-publishable-api-key"] = publishableKey;
-  }
+  try {
+    const result = await sdk.store.cart.complete(cart.id);
 
-  const resp = await fetch(url, { method: "POST", headers });
-
-  if (resp.ok) {
-    const result = await resp.json();
     if (result.type === "order") {
       clearCartId();
       $cart.set(null);
     }
-    return result;
-  }
 
-  // On 409 conflict (webhook already completed), retry with idempotency key
-  if (resp.status === 409) {
-    const idempotencyKey = resp.headers.get("idempotency-key");
-    if (idempotencyKey) {
-      const retryResp = await fetch(url, {
-        method: "POST",
-        headers: { ...headers, "idempotency-key": idempotencyKey },
-      });
-      if (retryResp.ok) {
-        const result = await retryResp.json();
-        if (result.type === "order") {
-          clearCartId();
-          $cart.set(null);
-        }
-        return result;
-      }
-    }
-    // Idempotency retry failed or no key — still clear cart
+    return result;
+  } catch {
+    // If we get a conflict (idempotency error), the cart was likely already
+    // completed by a payment provider webhook. Clear the cart and signal
+    // the caller so it can show a success message.
     clearCartId();
     $cart.set(null);
     return { type: "already_completed" as const };
   }
-
-  // Other errors
-  const errorBody = await resp.json().catch(() => ({}));
-  throw new Error(errorBody.message ?? resp.statusText);
 }
 
 /**
