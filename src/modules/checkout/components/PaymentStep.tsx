@@ -128,13 +128,7 @@ export const PaymentStep = ({
       } catch {}
 
       const result = await completeCart();
-      if (result.type === "order") {
-        try {
-          sessionStorage.setItem("medusa_order", JSON.stringify(result.order));
-          sessionStorage.removeItem("medusa_cart_snapshot");
-        } catch {}
-        window.location.href = `/${countryCode}/order/${result.order.id}`;
-      } else if (result.type === "already_completed") {
+      if (result.type === "order" || result.type === "already_completed") {
         window.location.href = `/${countryCode}/order/confirmed`;
       } else {
         setError(result.error.message || "Failed to place order. Please try again.");
