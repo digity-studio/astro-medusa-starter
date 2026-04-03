@@ -36,7 +36,7 @@ export const Nav = ({ countryCode, regionId }: NavProps) => {
 
       <a
         href={`/${countryCode}`}
-        className="text-xl font-bold uppercase tracking-wide"
+        className="text-sm font-bold uppercase tracking-wide"
       >
         Astro Medusa Store
       </a>
