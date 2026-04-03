@@ -1,28 +1,20 @@
 ---
-import { getRegion } from "@lib/data/regions";
-import { listProducts } from "@lib/data/products";
 import { Image } from "astro:assets";
 import Layout from "../../layouts/Layout.astro";
 import { getRegionParams } from "../../lib/params/region-params";
+import heroImage from "../../assets/hero.png";
 
 export const getStaticPaths = getRegionParams;
 
 const { countryCode } = Astro.params;
-
-const region = await getRegion(countryCode);
-
-const products = region ? await listProducts(region.id).catch(() => []) : [];
-
-const firstProduct = products?.[0];
-const heroImage = firstProduct?.thumbnail ?? firstProduct?.images?.[0]?.url;
 ---
 
 <Layout
   description="E-commerce starter template built with Astro and Medusa for maximum performance. Browse our collection of products."
-  image={heroImage}
+  image={heroImage.src}
 >
   <section
-    class="flex items-center h-[calc(100vh-96px)] gap-12 -mx-8 px-16 rounded-2xl overflow-hidden lg:bg-[#F7F7FA]"
+    class="flex items-center gap-12 overflow-hidden px-8 py-10 md:px-12 lg:min-h-[calc(100vh-96px-2rem)] lg:px-16"
   >
     <div class="flex flex-col gap-6 w-full md:flex-1 md:max-w-2xl">
       <h1 class="text-5xl font-bold leading-tight tracking-tight">
@@ -50,25 +42,19 @@ const heroImage = firstProduct?.thumbnail ?? firstProduct?.images?.[0]?.url;
     </div>
 
     <div
-      class="hidden md:flex flex-1 relative items-center justify-center h-full"
+      class="relative hidden h-full min-h-[36rem] md:flex md:flex-1 md:items-center md:justify-end"
     >
-      {
-        heroImage ? (
-          <Image
-            src={heroImage}
-            width={800}
-            height={900}
-            alt={firstProduct?.title ?? "Featured product"}
-            widths={[400, 600, 800]}
-            sizes="(max-width: 1024px) 50vw, 40vw"
-            format="webp"
-            quality={80}
-            class="relative z-10 w-full h-full object-contain scale-200 -right-120"
-          />
-        ) : (
-          <div class="relative z-10 w-full max-w-lg h-[500px] bg-linear-to-br from-gray-800 to-gray-950 rounded-3xl shadow-2xl" />
-        )
-      }
+      <Image
+        src={heroImage}
+        width={800}
+        height={900}
+        alt="Featured product"
+        widths={[400, 600, 800]}
+        sizes="(max-width: 1024px) 50vw, 40vw"
+        format="webp"
+        quality={80}
+        class="pointer-events-none absolute right-[-58%] top-1/2 z-10 h-auto max-h-none w-[66rem] max-w-none -translate-y-1/2 object-contain lg:right-[-64%] lg:w-[82rem] xl:right-[-62%] xl:w-[98rem]"
+      />
     </div>
   </section>
 </Layout>
