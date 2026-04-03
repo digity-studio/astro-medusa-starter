@@ -1,6 +1,7 @@
 ---
 import { getRegion } from "@lib/data/regions";
 import { CartSidebar } from "@modules/layout/components/CartSidebar";
+import Footer from "@modules/layout/components/Footer.astro";
 import { Nav } from "@modules/layout/components/Nav";
 import "@styles/global.css";
 import { ClientRouter } from "astro:transitions";
@@ -26,7 +27,10 @@ const {
 } = Astro.props;
 
 const pageTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const canonicalUrl = new URL(
+  Astro.url.pathname,
+  Astro.site ?? Astro.url.origin
+);
 
 const { countryCode } = Astro.params;
 
@@ -72,24 +76,33 @@ const regionId = region?.id || null;
     {image && <meta property="og:image" content={image} />}
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+    <meta
+      name="twitter:card"
+      content={image ? "summary_large_image" : "summary"}
+    />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={image} />}
   </head>
-  <body>
-    <Nav client:load countryCode={countryCode} regionId={regionId} />
-    <slot />
-    <CartSidebar client:load countryCode={countryCode} />
+  <body class="min-h-screen bg-white text-black">
+    <div class="mx-auto flex min-h-screen w-full max-w-[1800px] flex-col">
+      <Nav client:load countryCode={countryCode} regionId={regionId} />
+      <main class="flex-1 min-h-[calc(100vh-72px)]">
+        <slot />
+      </main>
+      <Footer countryCode={countryCode} />
+      <CartSidebar client:load countryCode={countryCode} />
+    </div>
   </body>
 </html>
 
 <style>
   body {
-    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
-    max-width: 1440px;
+    min-height: 100vh;
   }
 </style>

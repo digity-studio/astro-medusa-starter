@@ -1,0 +1,36 @@
+---
+import Layout from "@layouts/Layout.astro";
+import { getRegionParams } from "@lib/params/region-params";
+
+export const getStaticPaths = getRegionParams;
+---
+
+<Layout
+  title="Terms"
+  description="Basic storefront terms for the Astro and Medusa starter experience."
+>
+  <section class="mx-auto max-w-3xl px-8 py-12 md:px-12 lg:px-16">
+    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-black/55">
+      Terms
+    </p>
+    <h1 class="mt-4 text-4xl font-bold tracking-tight text-black">
+      Simple terms for a demo-ready storefront
+    </h1>
+    <div class="mt-8 space-y-6 text-base leading-8 text-black/70">
+      <p>
+        This storefront is a starter project meant for exploration, testing, and
+        customization. Product, pricing, and checkout behavior depend on the
+        connected Medusa backend configuration.
+      </p>
+      <p>
+        Orders placed in a demo environment should be treated as test orders
+        unless you have connected live payment, shipping, and fulfillment
+        services.
+      </p>
+      <p>
+        Before launching publicly, replace this page with your own commercial
+        terms, shipping rules, returns policy, and support information.
+      </p>
+    </div>
+  </section>
+</Layout>

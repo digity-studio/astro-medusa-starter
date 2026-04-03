@@ -1,0 +1,37 @@
+---
+import Layout from "@layouts/Layout.astro";
+import { getRegionParams } from "@lib/params/region-params";
+
+export const getStaticPaths = getRegionParams;
+---
+
+<Layout
+  title="Privacy"
+  description="Learn how this Astro and Medusa starter handles customer and checkout data."
+>
+  <section class="mx-auto max-w-3xl px-8 py-12 md:px-12 lg:px-16">
+    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-black/55">
+      Privacy
+    </p>
+    <h1 class="mt-4 text-4xl font-bold tracking-tight text-black">
+      Privacy-first storefront foundations
+    </h1>
+    <div class="mt-8 space-y-6 text-base leading-8 text-black/70">
+      <p>
+        This starter is designed to keep customer data handling straightforward.
+        Checkout and cart information is only collected when needed to complete
+        an order flow.
+      </p>
+      <p>
+        Payment details are processed through connected payment providers rather
+        than stored directly in the storefront codebase. Region and cart state
+        are used to keep pricing and checkout behavior accurate for the shopper.
+      </p>
+      <p>
+        If you adapt this starter for production, update this page with your own
+        business policies, retention periods, and contact details before going
+        live.
+      </p>
+    </div>
+  </section>
+</Layout>
