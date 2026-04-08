@@ -1,0 +1,149 @@
+---
+const token = import.meta.env.PUBLIC_INPOST_GEOWIDGET_TOKEN ?? "";
+const isSandbox = import.meta.env.PUBLIC_INPOST_SANDBOX ?? false;
+const widgetBaseUrl = isSandbox
+  ? "https://sandbox-easy-geowidget-sdk.easypack24.net"
+  : "https://geowidget.inpost.pl";
+const cssUrl = `${widgetBaseUrl}/inpost-geowidget.css`;
+const jsUrl = `${widgetBaseUrl}/inpost-geowidget.js`;
+---
+
+<link rel="preconnect" href={widgetBaseUrl} crossorigin />
+<link rel="preload" as="style" href={cssUrl} />
+<link rel="preload" as="script" href={jsUrl} crossorigin />
+
+<div
+  id="inpost-modal"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50"
+>
+  <div class="bg-white rounded-lg w-[90vw] max-w-4xl h-[80vh] flex flex-col">
+    <div class="flex items-center justify-end px-4 py-3 border-b">
+      <button
+        type="button"
+        id="inpost-modal-close"
+        class="text-gray-500 hover:text-gray-800 text-2xl leading-none"
+        aria-label="Close"
+      >
+        &times;
+      </button>
+    </div>
+    <div id="inpost-widget-container" class="flex-1"></div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ token, cssUrl, jsUrl }}>
+  (function () {
+    const modal = document.getElementById("inpost-modal");
+    const closeBtn = document.getElementById("inpost-modal-close");
+    const container = document.getElementById("inpost-widget-container");
+    let assetsPromise = null;
+    let widgetCreated = false;
+
+    function loadAssets() {
+      if (assetsPromise) return assetsPromise;
+
+      assetsPromise = new Promise(function (resolve) {
+        if (
+          !document.querySelector(
+            'link[rel="stylesheet"][href="' + cssUrl + '"]'
+          )
+        ) {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = cssUrl;
+          document.head.appendChild(link);
+        }
+
+        const existing = document.querySelector('script[src="' + jsUrl + '"]');
+        if (existing) {
+          if (existing.dataset.loaded === "true") {
+            resolve();
+          } else {
+            existing.addEventListener("load", function () {
+              resolve();
+            });
+          }
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = jsUrl;
+        script.async = true;
+        script.addEventListener("load", function () {
+          script.dataset.loaded = "true";
+          resolve();
+        });
+        document.head.appendChild(script);
+      });
+
+      return assetsPromise;
+    }
+
+    function createWidget() {
+      if (widgetCreated) return;
+      widgetCreated = true;
+      container.innerHTML = "";
+      const widget = document.createElement("inpost-geowidget");
+      widget.setAttribute("token", token);
+      widget.setAttribute("language", "en");
+      widget.setAttribute("config", "parcelCollect");
+      widget.setAttribute("onpoint", "onInPostPointSelected");
+      widget.style.display = "block";
+      widget.style.width = "100%";
+      widget.style.height = "100%";
+      container.appendChild(widget);
+    }
+
+    // Start loading assets and creating the widget as soon as possible,
+    // so that by the time the user opens the modal the map is already warm.
+    function warmUp() {
+      loadAssets().then(createWidget);
+    }
+
+    // Defer slightly to avoid competing with critical checkout work.
+    function scheduleWarmUp() {
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(warmUp, { timeout: 2000 });
+      } else {
+        window.setTimeout(warmUp, 500);
+      }
+    }
+
+    if (
+      document.readyState === "complete" ||
+      document.readyState === "interactive"
+    ) {
+      scheduleWarmUp();
+    } else {
+      window.addEventListener("DOMContentLoaded", scheduleWarmUp);
+    }
+
+    document.addEventListener("inpost:preload", warmUp);
+
+    document.addEventListener("inpost:open", function () {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      warmUp();
+    });
+
+    function closeModal() {
+      modal.classList.remove("flex");
+      modal.classList.add("hidden");
+    }
+
+    closeBtn.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", function (e) {
+      if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener("onInPostPointSelected", function (e) {
+      modal.classList.remove("flex");
+      modal.classList.add("hidden");
+
+      document.dispatchEvent(
+        new CustomEvent("inpost:pointSelected", { detail: e.detail })
+      );
+    });
+  })();
+</script>

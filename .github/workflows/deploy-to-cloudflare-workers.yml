@@ -37,6 +37,8 @@ jobs:
           DEFAULT_REGION: ${{ vars.DEFAULT_REGION }}
           PUBLIC_STRIPE_KEY: ${{ vars.PUBLIC_STRIPE_KEY }}
           S3_DOMAIN: ${{ vars.S3_DOMAIN }}
+          PUBLIC_INPOST_GEOWIDGET_TOKEN: ${{ vars.PUBLIC_INPOST_GEOWIDGET_TOKEN }}
+          PUBLIC_INPOST_SANDBOX: ${{ vars.PUBLIC_INPOST_SANDBOX }}
 
       - name: Deploy to Cloudflare Workers
         if: github.event_name != 'pull_request'

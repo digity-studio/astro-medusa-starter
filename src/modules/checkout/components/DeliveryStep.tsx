@@ -1,8 +1,16 @@
-import { addShippingMethod } from "@lib/stores/cart";
 import { sdk } from "@lib/sdk";
+import { addShippingMethod } from "@lib/stores/cart";
 import { convertToLocale } from "@lib/utils/money";
-import type { StoreCart, StoreCartShippingOptionWithServiceZone } from "@medusajs/types";
-import { useEffect, useState } from "react";
+import type {
+  StoreCart,
+  StoreCartShippingOptionWithServiceZone,
+} from "@medusajs/types";
+import { useCallback, useEffect, useState } from "react";
+
+interface InPostPoint {
+  name: string;
+  [key: string]: unknown;
+}
 
 interface DeliveryStepProps {
   cart: StoreCart;
@@ -30,16 +38,31 @@ const CheckCircle = () => (
   </span>
 );
 
+/**
+ * Detect whether a shipping option requires an InPost locker selection.
+ * Checks the provider metadata or option name for known InPost identifiers.
+ */
+function isInPostLockerOption(
+  option: StoreCartShippingOptionWithServiceZone,
+): boolean {
+  const data = (option as unknown as Record<string, unknown>).data as
+    | Record<string, unknown>
+    | undefined;
+  return data?.id === "inpost_locker_standard";
+}
+
 export const DeliveryStep = ({
   cart,
   mode,
   onContinue,
   onEdit,
 }: DeliveryStepProps) => {
-  const [shippingOptions, setShippingOptions] = useState<StoreCartShippingOptionWithServiceZone[]>(
-    [],
-  );
+  const [shippingOptions, setShippingOptions] = useState<
+    StoreCartShippingOptionWithServiceZone[]
+  >([]);
   const [selectedOptionId, setSelectedOptionId] = useState<string>("");
+  const [selectedLockerPoint, setSelectedLockerPoint] =
+    useState<InPostPoint | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -71,23 +94,69 @@ export const DeliveryStep = ({
     fetchOptions();
   }, [mode, cart.id]);
 
+  const selectedOption = shippingOptions.find((o) => o.id === selectedOptionId);
+  const needsLocker = selectedOption
+    ? isInPostLockerOption(selectedOption)
+    : false;
+
   const handleOptionChange = async (optionId: string) => {
     if (isSaving) return;
     setSelectedOptionId(optionId);
+    // Clear locker selection when switching options
+    setSelectedLockerPoint(null);
     setIsSaving(true);
     setError("");
+
+    const option = shippingOptions.find((o) => o.id === optionId);
+    const isLocker = option ? isInPostLockerOption(option) : false;
+
     try {
+      // For locker options, don't save yet — wait for point selection
+      if (isLocker) {
+        document.dispatchEvent(new CustomEvent("inpost:preload"));
+        setIsSaving(false);
+        return;
+      }
       await addShippingMethod(optionId);
     } catch (err) {
       console.error("Failed to update shipping method:", err);
       setError("Failed to update shipping method. Please try again.");
-      // Revert to the previously saved method
       const savedMethodId = cart.shipping_methods?.[0]?.shipping_option_id;
       setSelectedOptionId(savedMethodId ?? "");
     } finally {
       setIsSaving(false);
     }
   };
+
+  const handleLockerPointSelected = useCallback(
+    async (point: InPostPoint) => {
+      setSelectedLockerPoint(point);
+      setIsSaving(true);
+      setError("");
+      try {
+        await addShippingMethod(selectedOptionId, {
+          target_point: point.name,
+        });
+      } catch (err) {
+        console.error("Failed to set locker shipping method:", err);
+        setError("Failed to save locker selection. Please try again.");
+        setSelectedLockerPoint(null);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [selectedOptionId],
+  );
+
+  // Listen for point selection from the Astro-rendered InPost GeoWidget
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const point = (e as CustomEvent).detail as InPostPoint;
+      handleLockerPointSelected(point);
+    };
+    document.addEventListener("inpost:pointSelected", handler);
+    return () => document.removeEventListener("inpost:pointSelected", handler);
+  }, [handleLockerPointSelected]);
 
   if (mode === "inactive") {
     return (
@@ -127,6 +196,13 @@ export const DeliveryStep = ({
                 ? "Free"
                 : convertToLocale({ amount: method.amount, currencyCode })}
             </p>
+            {(() => {
+              const data = method.data as Record<string, unknown> | undefined;
+              const targetPoint = data?.target_point as string | undefined;
+              return targetPoint ? (
+                <p className="text-gray-500 mt-1">Locker: {targetPoint}</p>
+              ) : null;
+            })()}
           </div>
         )}
       </div>
@@ -159,36 +235,64 @@ export const DeliveryStep = ({
 
         {!isLoading && shippingOptions.length > 0 && (
           <div className="space-y-3 mb-6">
-            {shippingOptions.map((option) => (
-              <label
-                key={option.id}
-                className={`flex items-center justify-between border rounded-md px-4 py-3 cursor-pointer transition-colors ${
-                  selectedOptionId === option.id
-                    ? "border-black"
-                    : "border-gray-200 hover:border-gray-400"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="shipping_option"
-                    value={option.id}
-                    checked={selectedOptionId === option.id}
-                    onChange={() => handleOptionChange(option.id)}
-                    className="w-4 h-4 accent-black"
-                  />
-                  <span className="text-sm font-medium">{option.name}</span>
+            {shippingOptions.map((option) => {
+              const isLocker = isInPostLockerOption(option);
+              const isSelected = selectedOptionId === option.id;
+
+              return (
+                <div key={option.id}>
+                  <label
+                    className={`flex items-center justify-between border rounded-md px-4 py-3 cursor-pointer transition-colors ${
+                      isSelected
+                        ? "border-black"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="shipping_option"
+                        value={option.id}
+                        checked={isSelected}
+                        onChange={() => handleOptionChange(option.id)}
+                        className="w-4 h-4 accent-black"
+                      />
+                      <span className="text-sm font-medium">{option.name}</span>
+                    </div>
+                    <span className="text-sm text-gray-700">
+                      {option.amount === 0
+                        ? "Free"
+                        : convertToLocale({
+                            amount: option.amount,
+                            currencyCode,
+                          })}
+                    </span>
+                  </label>
+
+                  {isLocker && isSelected && (
+                    <div className="mt-3">
+                      {selectedLockerPoint ? (
+                        <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
+                          <span className="font-medium">Selected locker:</span>
+                          <span>{selectedLockerPoint.name}</span>
+                        </div>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          document.dispatchEvent(new CustomEvent("inpost:open"))
+                        }
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        {selectedLockerPoint
+                          ? "Change locker"
+                          : "Choose locker"}
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <span className="text-sm text-gray-700">
-                  {option.amount === 0
-                    ? "Free"
-                    : convertToLocale({
-                        amount: option.amount,
-                        currencyCode,
-                      })}
-                </span>
-              </label>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -196,7 +300,11 @@ export const DeliveryStep = ({
 
         <button
           type="button"
-          disabled={!selectedOptionId || isSaving}
+          disabled={
+            !selectedOptionId ||
+            isSaving ||
+            (needsLocker && !selectedLockerPoint)
+          }
           onClick={onContinue}
           className="bg-black text-white py-3 px-8 rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >

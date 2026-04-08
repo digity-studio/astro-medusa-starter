@@ -232,6 +232,7 @@ export function openCartSidebar(): void {
  */
 export async function addShippingMethod(
   shippingOptionId: string,
+  data?: Record<string, unknown>,
 ): Promise<void> {
   const cart = $cart.get();
   if (!cart) {
@@ -240,7 +241,7 @@ export async function addShippingMethod(
 
   const { cart: updatedCart } = await sdk.store.cart.addShippingMethod(
     cart.id,
-    { option_id: shippingOptionId },
+    { option_id: shippingOptionId, data },
     {
       fields: CART_FIELDS,
     },

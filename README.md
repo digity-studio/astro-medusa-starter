@@ -15,7 +15,7 @@ Static-first architecture. Interactive where it matters. Zero compromise on perf
 | Payments   | [Stripe](https://stripe.com) — secure checkout                                           |
 | State      | [Nanostores](https://github.com/nanostores/nanostores) — tiny, framework-agnostic stores |
 | Forms      | [React Hook Form](https://react-hook-form.com) + [Zod](https://zod.dev) validation       |
-| Deployment | [Cloudflare Workers](https://workers.cloudflare.com) — edge-first                          |
+| Deployment | [Cloudflare Workers](https://workers.cloudflare.com) — edge-first                        |
 
 ## Architecture
 
@@ -94,6 +94,8 @@ PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_...
 DEFAULT_REGION=us
 PUBLIC_STRIPE_KEY=pk_test_...
 S3_DOMAIN=your-bucket.s3.us-east-1.amazonaws.com
+PUBLIC_INPOST_GEOWIDGET_TOKEN=your-token
+PUBLIC_INPOST_SANDBOX=true
 ```
 
 > Make sure your Medusa backend has [CORS configured](https://docs.medusajs.com/learn/configurations/medusa-config#httpstorecors) to allow requests from your storefront origin.
