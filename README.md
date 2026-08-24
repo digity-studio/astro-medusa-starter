@@ -153,4 +153,9 @@ src/
 
 ## Author
 
-**Michal Bystryk** — [LinkedIn](https://www.linkedin.com/in/michal-bystryk/)
+**Michal Bystryk** — [digity.studio](https://digity.studio/) · [LinkedIn](https://www.linkedin.com/in/michal-bystryk/)
+
+## Work with me
+
+Need a custom storefront, a Medusa integration, or help shipping an ecommerce project?
+I build them at **[digity.studio](https://digity.studio/)** — get in touch.
