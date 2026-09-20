@@ -17,7 +17,8 @@ export const listProducts = async (regionId: string) => {
         // `*` selects rather than extends, so the relations the grid already
         // relied on must be listed alongside the ones filtering needs —
         // without `*variants.calculated_price` every card loses its price.
-        fields: "*variants.calculated_price,*categories,*collection",
+        fields:
+          "id,title,thumbnail,*images,*variants.calculated_price,*categories,*collection",
         limit: PRODUCTS_PAGE_SIZE,
         offset,
       });
