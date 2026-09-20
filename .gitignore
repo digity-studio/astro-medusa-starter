@@ -34,3 +34,6 @@ pnpm-debug.log*
 # gets them from the checkout. Cezar runtime is excluded via .ai/cezar/.gitignore.
 .ai/cezar/drafts/
 .ai/cezar/ui-state.json
+.ai/qa/artifacts_*/
+.ai/qa/test-env.json
+.ai/qa/test-env.env
