@@ -4,6 +4,7 @@ export const listProducts = async (regionId: string) => {
   try {
     const { products } = await sdk.store.product.list({
       region_id: regionId,
+      fields: "*categories,*collection",
     });
     return products;
   } catch (error) {

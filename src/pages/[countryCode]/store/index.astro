@@ -4,6 +4,8 @@ import { getRegion } from "@lib/data/regions";
 import { listProducts } from "@lib/data/products";
 import { getRegionParams } from "@lib/params/region-params";
 import ProductPreview from "@modules/products/components/product-preview/ProductPreview.astro";
+import { ProductFilters } from "@modules/products/components/product-filters/ProductFilters";
+import { buildFilterGroups } from "@lib/utils/product-filters";
 
 export const getStaticPaths = getRegionParams;
 
@@ -24,6 +26,17 @@ try {
   error = e instanceof Error ? e : new Error("Unknown error");
   console.error(error);
 }
+
+const filterGroups = buildFilterGroups(products);
+
+// Only the fields the island actually needs — keeps the serialised payload small.
+const filterableProducts = products.map((product) => ({
+  id: product.id,
+  categories: product.categories?.map(({ id, name }) => ({ id, name })) ?? [],
+  collection: product.collection
+    ? { id: product.collection.id, title: product.collection.title }
+    : null,
+}));
 ---
 
 <Layout
@@ -33,12 +46,17 @@ try {
   <div class="px-8 py-6 md:px-12 lg:px-16">
     <h1 class="mb-8 text-4xl font-bold">All Products</h1>
     {error && <p class="text-red-700">{error.message}</p>}
+    <ProductFilters
+      client:load
+      products={filterableProducts}
+      groups={filterGroups}
+    />
     <ul
       class="grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 w-full gap-x-6 gap-y-8"
     >
       {
         products?.map((product, index) => (
-          <li>
+          <li data-product-id={product.id}>
             <ProductPreview
               id={product.id}
               variants={product.variants ?? []}
