@@ -4,6 +4,7 @@
   "version": "1.2.0",
   "scripts": {
     "dev": "astro dev",
+    "test": "node --test",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
