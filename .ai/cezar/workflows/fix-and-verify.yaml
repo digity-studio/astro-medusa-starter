@@ -1,0 +1,12 @@
+name: fix-and-verify
+description: Implement the task, then run your test command; on failure the agent retries with the failing output.
+steps:
+  - id: implement
+    name: Implement
+    prompt: "{{task}}"
+  - id: verify
+    name: Verify
+    command: "echo 'replace me with: npm test / yarn test / pytest'"
+    onFail:
+      retry: implement
+      max: 2

@@ -28,3 +28,9 @@ pnpm-debug.log*
 
 # cloudflare
 .wrangler/
+
+# ai
+# Skills and workflows in .ai/ are tracked in git so every task worktree
+# gets them from the checkout. Cezar runtime is excluded via .ai/cezar/.gitignore.
+.ai/cezar/drafts/
+.ai/cezar/ui-state.json
