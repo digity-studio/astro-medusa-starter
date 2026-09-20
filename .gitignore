@@ -28,3 +28,9 @@ pnpm-debug.log*
 
 # cloudflare
 .wrangler/
+
+# ai
+# Skille i workflowy w .ai/ sa wersjonowane — kazdy task worktree
+# dostaje je z gita. Runtime cezara wyklucza .ai/cezar/.gitignore.
+.ai/cezar/drafts/
+.ai/cezar/ui-state.json
