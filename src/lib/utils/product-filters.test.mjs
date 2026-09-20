@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import {
   EMPTY_FILTER_STATE,
   buildFilterGroups,
@@ -8,7 +9,7 @@ import {
   reconcileFilters,
   serializeFiltersToSearch,
   toggleFilterValue,
-} from "./product-filters";
+} from "./product-filters.ts";
 
 const products = [
   {
@@ -33,7 +34,7 @@ const products = [
 
 describe("product filters", () => {
   it("builds sorted facet groups with product counts", () => {
-    expect(buildFilterGroups(products)).toEqual([
+    assert.deepEqual(buildFilterGroups(products), [
       {
         key: "category",
         label: "Category",
@@ -60,7 +61,10 @@ describe("product filters", () => {
       collection: ["col_winter"],
     });
 
-    expect(filtered.map((product) => product.id)).toEqual(["prod_3"]);
+    assert.deepEqual(
+      filtered.map((product) => product.id),
+      ["prod_3"],
+    );
   });
 
   it("round-trips repeated URL parameters without corrupting commas", () => {
@@ -69,27 +73,29 @@ describe("product filters", () => {
       collection: ["col_winter"],
     };
 
-    expect(parseFiltersFromSearch(serializeFiltersToSearch(filters))).toEqual(
+    assert.deepEqual(
+      parseFiltersFromSearch(serializeFiltersToSearch(filters)),
       filters,
     );
   });
 
   it("drops stale URL values while preserving valid selections", () => {
-    expect(
+    assert.deepEqual(
       reconcileFilters(
         { category: ["cat_a", "cat_stale"], collection: ["col_stale"] },
         buildFilterGroups(products),
       ),
-    ).toEqual({ category: ["cat_a"], collection: [] });
+      { category: ["cat_a"], collection: [] },
+    );
   });
 
   it("toggles values immutably and counts active filters", () => {
     const selected = toggleFilterValue(EMPTY_FILTER_STATE, "category", "cat_a");
     const cleared = toggleFilterValue(selected, "category", "cat_a");
 
-    expect(selected).toEqual({ category: ["cat_a"], collection: [] });
-    expect(cleared).toEqual(EMPTY_FILTER_STATE);
-    expect(countActiveFilters(selected)).toBe(1);
-    expect(EMPTY_FILTER_STATE).toEqual({ category: [], collection: [] });
+    assert.deepEqual(selected, { category: ["cat_a"], collection: [] });
+    assert.deepEqual(cleared, EMPTY_FILTER_STATE);
+    assert.equal(countActiveFilters(selected), 1);
+    assert.deepEqual(EMPTY_FILTER_STATE, { category: [], collection: [] });
   });
 });
