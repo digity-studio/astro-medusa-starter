@@ -101,10 +101,11 @@ export const toggleFilterValue = (
 export const parseFiltersFromSearch = (search: string): FilterState => {
   const params = new URLSearchParams(search);
 
+  // Repeated params only — splitting on "," here would corrupt any value that
+  // legitimately contains one. Stale values are dropped by `reconcileFilters`.
   const read = (key: string) =>
     params
       .getAll(key)
-      .flatMap((value) => value.split(","))
       .map((value) => value.trim())
       .filter(Boolean);
 
@@ -117,13 +118,15 @@ export const parseFiltersFromSearch = (search: string): FilterState => {
 export const serializeFiltersToSearch = (filters: FilterState): string => {
   const params = new URLSearchParams();
 
-  if (filters.category.length > 0) {
-    params.set(FILTER_PARAM_KEYS.category, filters.category.join(","));
-  }
+  // Repeated params rather than a comma-joined value, so a value that itself
+  // contains a comma round-trips instead of being split into two.
+  filters.category.forEach((value) =>
+    params.append(FILTER_PARAM_KEYS.category, value),
+  );
 
-  if (filters.collection.length > 0) {
-    params.set(FILTER_PARAM_KEYS.collection, filters.collection.join(","));
-  }
+  filters.collection.forEach((value) =>
+    params.append(FILTER_PARAM_KEYS.collection, value),
+  );
 
   const query = params.toString();
 
