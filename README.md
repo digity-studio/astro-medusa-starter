@@ -76,7 +76,7 @@ All routes are prefixed with an ISO-2 country code for region-based pricing and 
 
 ```bash
 # Clone the repo
-git clone https://github.com/bystrol/astro-medusa-starter.git
+git clone https://github.com/digity-studio/astro-medusa-starter.git
 cd astro-medusa-starter/
 
 # Install dependencies

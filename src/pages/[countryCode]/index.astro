@@ -1,8 +1,8 @@
 ---
 import { Image } from "astro:assets";
+import heroImage from "../../assets/hero.png";
 import Layout from "../../layouts/Layout.astro";
 import { getRegionParams } from "../../lib/params/region-params";
-import heroImage from "../../assets/hero.png";
 
 export const getStaticPaths = getRegionParams;
 
@@ -26,7 +26,7 @@ const { countryCode } = Astro.params;
       </p>
       <div class="flex items-center gap-4 mt-2">
         <a
-          href="https://github.com/Bystrol/astro-medusa-starter"
+          href="https://github.com/digity-studio/astro-medusa-starter"
           target="_blank"
           class="px-6 py-3 bg-black text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors"
         >
